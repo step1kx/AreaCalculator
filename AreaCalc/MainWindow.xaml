@@ -1,14 +1,16 @@
 ﻿<Window x:Class="AreaCalc.MainWindow"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:AreaCalc"
-             Height="400" Width="1000" Title="Задания" WindowStyle="None" 
-             AllowsTransparency="True" 
-             WindowStartupLocation="CenterScreen" 
-             Background="Transparent">
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+        xmlns:local="clr-namespace:AreaCalc"
+        Height="500" Width="700" Title="Квартирография" WindowStyle="None" 
+        AllowsTransparency="True" 
+        WindowStartupLocation="CenterScreen" 
+        Background="Transparent">
     <Window.Resources>
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <!-- Стили остаются без изменений -->
         <Style TargetType="Button">
             <Setter Property="Background" Value="#fff"/>
             <Setter Property="Foreground" Value="#000"/>
@@ -29,9 +31,9 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="1"
-                        CornerRadius="5">
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="5">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -48,11 +50,11 @@
                                 <BeginStoryboard>
                                     <Storyboard>
                                         <ColorAnimation Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)"
-                                                From="#fff" To="#000" Duration="0:0:0.3"/>
+                                                        From="#fff" To="#000" Duration="0:0:0.3"/>
                                         <DoubleAnimation Storyboard.TargetProperty="(Button.Effect).(DropShadowEffect.BlurRadius)"
-                                                 From="10" To="20" Duration="0:0:0.5"/>
+                                                        From="10" To="20" Duration="0:0:0.5"/>
                                         <DoubleAnimation Storyboard.TargetProperty="(Button.Effect).(DropShadowEffect.Opacity)"
-                                                 From="0.5" To="0.8" Duration="0:0:0.5"/>
+                                                        From="0.5" To="0.8" Duration="0:0:0.5"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -61,11 +63,11 @@
                                 <BeginStoryboard>
                                     <Storyboard>
                                         <ColorAnimation Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)"
-                                                From="#000" To="#fff" Duration="0:0:0.3"/>
+                                                        From="#000" To="#fff" Duration="0:0:0.3"/>
                                         <DoubleAnimation Storyboard.TargetProperty="(Button.Effect).(DropShadowEffect.BlurRadius)"
-                                                 From="20" To="10" Duration="0:0:0.2"/>
+                                                        From="20" To="10" Duration="0:0:0.2"/>
                                         <DoubleAnimation Storyboard.TargetProperty="(Button.Effect).(DropShadowEffect.Opacity)"
-                                                 From="0.8" To="0.5" Duration="0:0:0.3"/>
+                                                        From="0.8" To="0.5" Duration="0:0:0.3"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -126,56 +128,65 @@
     </Window.Resources>
     <Border Background="#FFE4E4E4" CornerRadius="10" BorderBrush="Gray" BorderThickness="1">
         <Grid>
+            <!-- Заголовок и кнопка закрытия -->
             <Grid Background="Transparent" VerticalAlignment="Top" Height="40">
-                <Grid.RenderTransform>
-                    <TransformGroup>
-                        <ScaleTransform/>
-                        <SkewTransform/>
-                        <RotateTransform Angle="0.112"/>
-                        <TranslateTransform/>
-                    </TransformGroup>
-                </Grid.RenderTransform>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="40"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Название окна -->
-                <TextBlock Text="Квартирография" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,10,0,0" Foreground="#000" FontSize="20" FontWeight="Bold" FontFamily="Arial Black"/>
+                <TextBlock Text="Квартирография" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#000" FontSize="20" FontWeight="Bold" FontFamily="Arial Black"/>
 
                 <!-- Кнопка закрытия -->
                 <Button Content="X" Grid.Column="1" Click="CancelButton_Click" 
-            HorizontalAlignment="Center" VerticalAlignment="Center" 
-            FontWeight="Bold" 
-            Width="30" Height="30" BorderBrush="Transparent" 
-            FontSize="14" Cursor="Hand"/>
+                        HorizontalAlignment="Center" VerticalAlignment="Center" 
+                        FontWeight="Bold" 
+                        Width="30" Height="30" BorderBrush="Transparent" 
+                        FontSize="14" Cursor="Hand"/>
             </Grid>
 
-            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Margin="326,100,0,0" Width="244" Text="Введите формулы для подсчета:" ></TextBlock>
-            
+            <!-- Группа выбора режима -->
+            <GroupBox Header="Режим расчета" VerticalAlignment="Top" Margin="20,60,20,0" Height="80">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <RadioButton x:Name="allApartmentsRadioButton" Content="Все квартиры в виде" IsChecked="True" Margin="10"/>
+                    <RadioButton x:Name="selectedApartmentRadioButton" Content="Выбранная квартира" Margin="10"/>
+                </StackPanel>
+            </GroupBox>
+
+            <!-- Поля для ввода формул -->
+            <StackPanel VerticalAlignment="Top" Margin="20,160,20,0">
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Width="200" Text="Формула жилой площади:" VerticalAlignment="Center"/>
+                    <TextBox x:Name="livingFormulaTextBox" Width="350" ToolTip="Введите формулу для жилой площади"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Width="200" Text="Формула обычной площади:" VerticalAlignment="Center"/>
+                    <TextBox x:Name="usualFormulaTextBox" Width="350" ToolTip="Введите формулу для обычной площади"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Width="200" Text="Формула общей площади:" VerticalAlignment="Center"/>
+                    <TextBox x:Name="totalFormulaTextBox" Width="350" ToolTip="Введите формулу для общей площади"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- ComboBox для выбора квартиры (видимый только в режиме "Выбранная квартира") -->
+            <StackPanel VerticalAlignment="Top" Margin="20,320,20,0" Visibility="{Binding IsChecked, ElementName=selectedApartmentRadioButton, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Width="200" Text="Выберите квартиру:" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="apartmentComboBox" Width="350" Height="30"/>
+                </StackPanel>
+            </StackPanel>
 
             <!-- Кнопка для выполнения расчета -->
-            <Button Content="Подсчет площади" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="370,321,0,0" />
+            <Button x:Name="calculateButton" Content="Подсчет площадей" 
+                    HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                    Width="150" Height="40" Margin="0,0,0,20" 
+                    Click="CalculateButton_Click"/>
 
-            <ComboBox x:Name="apartmentComboBox" 
-                  Width="250" 
-                  Height="30" 
-                  HorizontalAlignment="Left"
-                  Margin="93,326,0,42" 
-                 />
-            <!-- Поле вывода результата -->
-            <TextBox x:Name="formulaTextBox_1" HorizontalAlignment="Center" VerticalAlignment="Top" Width="470" Height="34" ToolTip="Введите формулу для жилой площади" Margin="0,141,0,0" />
-            <TextBox x:Name="formulaTextBox_2" HorizontalAlignment="Center" VerticalAlignment="Top" Width="470" Height="34" ToolTip="Введите формулу для обычной площади" Margin="0,199,0,0" />
-            <TextBox x:Name="formulaTextBox_3" HorizontalAlignment="Center" VerticalAlignment="Top" Width="470" Height="34" ToolTip="Введите формулу для общей площади" Margin="0,260,0,0" />
-
-            <!-- Кнопка для выполнения расчета -->
-            <Button  Content="Подсчет площади" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="370,321,0,0"  />
-
-            <!-- Поля для вывода результатов -->
-            <TextBlock x:Name="livingAreaTextBlock" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="17" Margin="742,147,0,0" Text="Жилая площадь: " />
-            <TextBlock x:Name="usualAreaTextBlock" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="17" Margin="739,205,0,0" Text="Обычная площадь: " />
-            <TextBlock x:Name="totalAreaTextBlock" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="17" Margin="739,270,0,0" Text="Общая площадь: " />
-
+            <!-- Поле для отображения общей площади всех квартир -->
+            <TextBlock x:Name="totalViewAreaTextBlock" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
+                       Margin="0,0,0,80" FontSize="14" FontWeight="Bold" Text="Общая площадь всех квартир: 0 м²"/>
         </Grid>
     </Border>
 </Window>
