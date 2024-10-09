@@ -28,42 +28,6 @@ namespace AreaCalc
             return Result.Succeeded;
 
         }
-        //public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
-        //{
-        //    UIDocument uiDoc = commandData.Application.ActiveUIDocument;
-        //    Document doc = uiDoc.Document;
-
-        //    // Создаем словарь для хранения данных
-        //    Dictionary<string, double> apartmentAreas = new Dictionary<string, double>();
-
-        //    // Получаем все помещения в проекте
-        //    FilteredElementCollector collector = new FilteredElementCollector(doc);
-        //    collector.OfCategory(BuiltInCategory.OST_Rooms);
-
-        //    foreach (Room room in collector)
-        //    {
-        //        // Получаем тип помещения и его площадь
-        //        string roomType = room.LookupParameter("Помещение")?.AsString() ?? "Неизвестный тип";
-        //        double roomArea = room.Area;
-
-        //        // Сохраняем данные в словарь
-        //        if (apartmentAreas.ContainsKey(roomType))
-        //        {
-        //            apartmentAreas[roomType] += roomArea;
-        //        }
-        //        else
-        //        {
-        //            apartmentAreas[roomType] = roomArea;
-        //        }
-        //    }
-
-        //    // Выводим результаты в консоль или другое место
-        //    foreach (var entry in apartmentAreas)
-        //    {
-        //        TaskDialog.Show("Квартирография", $"Тип квартиры: {entry.Key}, Площадь: {entry.Value} м²");
-        //    }
-
-        //    return Result.Succeeded;
-        //}
+       
     }
 }

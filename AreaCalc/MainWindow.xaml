@@ -164,13 +164,18 @@
                   Margin="93,326,0,42" 
                  />
             <!-- Поле вывода результата -->
-            <TextBlock x:Name="resultTextBlock" HorizontalAlignment="Left" VerticalAlignment="Top" Width="769" Height="17" Margin="106,299,0,0" RenderTransformOrigin="0.502,1.719" />
-            <TextBox x:Name="formulaTextBox_1" HorizontalAlignment="Center" VerticalAlignment="Top" Width="470" Height="34" ToolTip="Введите формулу" Margin="0,141,0,0" />
-            <TextBox x:Name="formulaTextBox_2" HorizontalAlignment="Center" VerticalAlignment="Top" Width="470" Height="34" ToolTip="Введите формулу" Margin="0,199,0,0" />
-            <TextBox x:Name="formulaTextBox_3" HorizontalAlignment="Center" VerticalAlignment="Top" Width="470" Height="34" ToolTip="Введите формулу" Margin="0,260,0,0" />
-            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Margin="170,146,0,0" Width="94" Text="Площади:" />
-            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Margin="127,205,0,0" Width="132" Text="Жилой площади:" />
-            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Left" Margin="127,264,0,0" Width="132" Text="Общей площади:" />
+            <TextBox x:Name="formulaTextBox_1" HorizontalAlignment="Center" VerticalAlignment="Top" Width="470" Height="34" ToolTip="Введите формулу для жилой площади" Margin="0,141,0,0" />
+            <TextBox x:Name="formulaTextBox_2" HorizontalAlignment="Center" VerticalAlignment="Top" Width="470" Height="34" ToolTip="Введите формулу для обычной площади" Margin="0,199,0,0" />
+            <TextBox x:Name="formulaTextBox_3" HorizontalAlignment="Center" VerticalAlignment="Top" Width="470" Height="34" ToolTip="Введите формулу для общей площади" Margin="0,260,0,0" />
+
+            <!-- Кнопка для выполнения расчета -->
+            <Button  Content="Подсчет площади" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="370,321,0,0"  />
+
+            <!-- Поля для вывода результатов -->
+            <TextBlock x:Name="livingAreaTextBlock" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="17" Margin="742,147,0,0" Text="Жилая площадь: " />
+            <TextBlock x:Name="usualAreaTextBlock" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="17" Margin="739,205,0,0" Text="Обычная площадь: " />
+            <TextBlock x:Name="totalAreaTextBlock" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Height="17" Margin="739,270,0,0" Text="Общая площадь: " />
+
         </Grid>
     </Border>
 </Window>
