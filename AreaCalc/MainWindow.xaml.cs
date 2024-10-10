@@ -7,6 +7,8 @@ using System.Windows;
 using System.Linq;
 using System.Data;
 using Autodesk.Revit.DB.Architecture;
+using System.Diagnostics;
+using System.Windows.Input;
 
 namespace AreaCalc
 {
@@ -15,6 +17,8 @@ namespace AreaCalc
         private Autodesk.Revit.DB.Document _doc;
         private Dictionary<string, List<Room>> apartmentsData;
         private List<Room> apartments;
+        Parameter roomTypeParam;
+        int? roomType;
 
         public MainWindow(Autodesk.Revit.DB.Document doc)
         {
@@ -26,6 +30,14 @@ namespace AreaCalc
             PopulateApartmentComboBox();
         }
 
+        private void MovingWin(object sender, EventArgs e)
+        {
+            if (Mouse.LeftButton == MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
+        }
+
         private void GetApartmentData()
         {
             var activeView = _doc.ActiveView.Id;
@@ -33,55 +45,107 @@ namespace AreaCalc
                 .OfCategory(BuiltInCategory.OST_Rooms)
                 .WhereElementIsNotElementType();
 
+            //foreach (Room room in apartmentCollector)
+            //{
+            //    Parameter apartmentNumberParam = room.LookupParameter("КГ.Номер квартиры");
+            //    Parameter areaParam = room.get_Parameter(BuiltInParameter.ROOM_AREA);
+            //    Parameter roomTypeParam = room.LookupParameter("КГ.Тип помещения");
+
+            //    // Логирование параметров для отладки
+            //    string roomType = roomTypeParam?.AsString();
+
+            //    if (apartmentNumberParam == null || areaParam == null || roomTypeParam == null)
+            //    {
+            //        MessageBox.Show("Один из параметров не найден!");
+            //        continue;
+            //    }
+
+            //    string apartmentNumber = apartmentNumberParam.AsString() ?? "Не найден";
+            //    double area = areaParam.HasValue ? areaParam.AsDouble() : 0;
+
+            //    if (apartmentNumber != null)
+            //    {
+            //        apartments.Add(room);
+            //    }
+            //}
+
+            //foreach (Room room in apartments)
+            //{
+            //    Parameter apartmentNumberParam = room.LookupParameter("КГ.Номер квартиры");
+            //    Parameter areaParam = room.get_Parameter(BuiltInParameter.ROOM_AREA);
+            //    Parameter roomTypeParam = room.LookupParameter("КГ.Тип помещения");
+
+            //    // Проверяем и логируем
+            //    if (apartmentNumberParam == null || areaParam == null || roomTypeParam == null)
+            //    {
+            //        MessageBox.Show("Один из параметров не найден!");
+            //        continue;
+            //    }
+
+            //    string apartmentNumber = apartmentNumberParam.AsString();
+            //    double area = areaParam.HasValue ? areaParam.AsDouble() : 0;
+            //    string roomType = roomTypeParam?.AsString();
+
+
+            //    if (!string.IsNullOrWhiteSpace(apartmentNumber) && !apartmentsData.ContainsKey(apartmentNumber))
+            //    {
+            //        apartmentsData[apartmentNumber] = new List<Room>();
+            //    }
+
+            //    apartmentsData[apartmentNumber].Add(room);
+            //}
+
             foreach (Room room in apartmentCollector)
             {
                 Parameter apartmentNumberParam = room.LookupParameter("КГ.Номер квартиры");
                 Parameter areaParam = room.get_Parameter(BuiltInParameter.ROOM_AREA);
-                Parameter roomTypeParam = room.LookupParameter("КГ.Тип помещения");
+                roomTypeParam = room.LookupParameter("КГ.Тип помещения");
+                string roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString();
+                // Отсеиваем помещения без номеров квартир (например, Лестничная клетка и Лифт)
 
-                // Логирование параметров для отладки
-                string roomType = roomTypeParam?.AsString();
+                //if (roomName == "Лестничная клетка" || roomName == "Лифт")
+                //{
+                //    MessageBox.Show($"Skipping room: {roomName}");
+                //    continue;
+                //}
 
+                // Проверяем наличие параметров
                 if (apartmentNumberParam == null || areaParam == null || roomTypeParam == null)
                 {
                     MessageBox.Show("Один из параметров не найден!");
                     continue;
                 }
 
-                string apartmentNumber = apartmentNumberParam.AsString() ?? "Не найден";
-                double area = areaParam.HasValue ? areaParam.AsDouble() : 0;
 
-                if (apartmentNumber != null)
-                {
-                    apartments.Add(room);
-                }
-            }
-
-            foreach (Room room in apartments)
-            {
-                Parameter apartmentNumberParam = room.LookupParameter("КГ.Номер квартиры");
-                Parameter areaParam = room.get_Parameter(BuiltInParameter.ROOM_AREA);
-                Parameter roomTypeParam = room.LookupParameter("КГ.Тип помещения");
-
-                // Проверяем и логируем
-                if (apartmentNumberParam == null || areaParam == null || roomTypeParam == null)
-                {
-                    MessageBox.Show("Один из параметров не найден!");
-                    continue;
-                }
 
                 string apartmentNumber = apartmentNumberParam.AsString();
                 double area = areaParam.HasValue ? areaParam.AsDouble() : 0;
-                string roomType = roomTypeParam?.AsString();
+                roomType = roomTypeParam?.AsInteger();
 
-                
-                if (!apartmentsData.ContainsKey(apartmentNumber) && apartmentNumber != null)
+                if (roomType == null)
                 {
-                    apartmentsData[apartmentNumber] = new List<Room>();
+                    MessageBox.Show($"Тип помещения: {roomType}");
+                    
                 }
 
-                apartmentsData[apartmentNumber].Add(room);
+                // Проверяем номер квартиры и добавляем в словарь
+                if (!string.IsNullOrWhiteSpace(apartmentNumber))
+                {
+                    // Если ключа нет, создаем новую запись
+                    if (!apartmentsData.ContainsKey(apartmentNumber))
+                    {
+                        apartmentsData[apartmentNumber] = new List<Room>();
+                    }
+
+                    // Добавляем комнату к квартире
+                    apartmentsData[apartmentNumber].Add(room);
+                }
+                //else
+                //{
+                //    MessageBox.Show("Apartment number is empty or whitespace!");
+                //}
             }
+
         }
 
 
@@ -163,12 +227,17 @@ namespace AreaCalc
                     {
                         // Группируем площади по типам помещений
                         Dictionary<string, double> roomAreas = rooms
+                            .Where(r =>
+                            {
+                                string roomName = r.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString();
+                                return roomName != "Лестничная клетка" && roomName != "Лифт"; // Отсеивание ненужных помещений
+                            })
                             .GroupBy(r =>
                             {
-                                string type = r.LookupParameter("КГ.Тип помещения")?.AsString() ?? "Неизвестный тип";
+                                int? type = r.LookupParameter("КГ.Тип помещения")?.AsInteger() ?? 0;
                                 return "Тип" + type; // Формируем ключ с добавлением "Тип"
                             })
-                            .ToDictionary(g => g.Key, g => g.Sum(r => r.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble()));
+                            .ToDictionary(g => g.Key, g => Math.Round(g.Sum(r => r.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble()), 3));
 
                         MessageBox.Show("Содержимое roomAreas:\n" + string.Join("\n", roomAreas.Select(kv => $"Тип: {kv.Key}, Площадь: {kv.Value}")));
                         // Рассчитываем площади по формулам
@@ -225,8 +294,17 @@ namespace AreaCalc
 
                         // Группируем площади по типам помещений
                         Dictionary<string, double> roomAreas = rooms
-                            .GroupBy(r => r.LookupParameter("КГ.Тип помещения")?.AsString() ?? "Неизвестный тип")
-                            .ToDictionary(g => g.Key, g => g.Sum(r => r.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble()));
+                            .Where(r =>
+                            {
+                                string roomName = r.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString();
+                                return roomName != "Лестничная клетка" && roomName != "Лифт"; // Отсеивание ненужных помещений
+                            })
+                            .GroupBy(r =>
+                            {
+                                int? type = r.LookupParameter("КГ.Тип помещения")?.AsInteger() ?? 0;
+                                return "Тип" + type; // Формируем ключ с добавлением "Тип"
+                            })
+                            .ToDictionary(g => g.Key, g => Math.Round(g.Sum(r => r.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble()), 3));
 
                         // Рассчитываем площади по формулам
                         double livingArea = 0;

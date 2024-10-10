@@ -7,7 +7,8 @@
         Height="500" Width="700" Title="Квартирография" WindowStyle="None" 
         AllowsTransparency="True" 
         WindowStartupLocation="CenterScreen" 
-        Background="Transparent">
+        Background="Transparent"
+        MouseDown="MovingWin">
     <Window.Resources>
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
         <!-- Стили остаются без изменений -->
