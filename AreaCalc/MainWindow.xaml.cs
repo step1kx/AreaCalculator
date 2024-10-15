@@ -9,6 +9,7 @@ using System.Data;
 using Autodesk.Revit.DB.Architecture;
 using System.Diagnostics;
 using System.Windows.Input;
+using System.Windows.Controls;
 
 namespace AreaCalc
 {
@@ -44,56 +45,6 @@ namespace AreaCalc
             FilteredElementCollector apartmentCollector = new FilteredElementCollector(_doc, activeView)
                 .OfCategory(BuiltInCategory.OST_Rooms)
                 .WhereElementIsNotElementType();
-
-            //foreach (Room room in apartmentCollector)
-            //{
-            //    Parameter apartmentNumberParam = room.LookupParameter("КГ.Номер квартиры");
-            //    Parameter areaParam = room.get_Parameter(BuiltInParameter.ROOM_AREA);
-            //    Parameter roomTypeParam = room.LookupParameter("КГ.Тип помещения");
-
-            //    // Логирование параметров для отладки
-            //    string roomType = roomTypeParam?.AsString();
-
-            //    if (apartmentNumberParam == null || areaParam == null || roomTypeParam == null)
-            //    {
-            //        MessageBox.Show("Один из параметров не найден!");
-            //        continue;
-            //    }
-
-            //    string apartmentNumber = apartmentNumberParam.AsString() ?? "Не найден";
-            //    double area = areaParam.HasValue ? areaParam.AsDouble() : 0;
-
-            //    if (apartmentNumber != null)
-            //    {
-            //        apartments.Add(room);
-            //    }
-            //}
-
-            //foreach (Room room in apartments)
-            //{
-            //    Parameter apartmentNumberParam = room.LookupParameter("КГ.Номер квартиры");
-            //    Parameter areaParam = room.get_Parameter(BuiltInParameter.ROOM_AREA);
-            //    Parameter roomTypeParam = room.LookupParameter("КГ.Тип помещения");
-
-            //    // Проверяем и логируем
-            //    if (apartmentNumberParam == null || areaParam == null || roomTypeParam == null)
-            //    {
-            //        MessageBox.Show("Один из параметров не найден!");
-            //        continue;
-            //    }
-
-            //    string apartmentNumber = apartmentNumberParam.AsString();
-            //    double area = areaParam.HasValue ? areaParam.AsDouble() : 0;
-            //    string roomType = roomTypeParam?.AsString();
-
-
-            //    if (!string.IsNullOrWhiteSpace(apartmentNumber) && !apartmentsData.ContainsKey(apartmentNumber))
-            //    {
-            //        apartmentsData[apartmentNumber] = new List<Room>();
-            //    }
-
-            //    apartmentsData[apartmentNumber].Add(room);
-            //}
 
             foreach (Room room in apartmentCollector)
             {
@@ -282,7 +233,7 @@ namespace AreaCalc
                         MessageBox.Show("Квартира не найдена в данных.");
                     }
                 }
-                else if (allApartmentsRadioButton.IsChecked == true)
+                else if (allApartmentsOnViewRadioButton.IsChecked == true)
                 {
                     // Обработка всех квартир
                     int processed = 0;
@@ -328,7 +279,7 @@ namespace AreaCalc
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show($"Ошибка в квартире {apartmentNumber}: {ex.Message}");
+                            MessageBox.Show($"Ошибка в квартире {apartmentNumber} (все хорошо, там просто не посчитается площадь): {ex.Message}");
                             continue; // Переходим к следующей квартире
                         }
 
@@ -347,9 +298,72 @@ namespace AreaCalc
 
                     MessageBox.Show($"Расчет завершен. Обработано квартир: {processed}");
                 }
+                else if(allApartmentsOnObjectRadioButton.IsChecked == true)
+                {
+                    int processedRooms = 0;
+
+                    // Получаем все помещения в проекте
+                    var allRooms = new FilteredElementCollector(MainFunction_1.doc)
+                        .OfCategory(BuiltInCategory.OST_Rooms)
+                        .WhereElementIsNotElementType()
+                        .ToElements()
+                        .Cast<Room>()
+                        .Where(r =>
+                        {
+                            string roomName = r.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString();
+                            return roomName != "Лестничная клетка" && roomName != "Лифт"; // Отсеивание ненужных помещений
+                        })
+                        .ToList();
+
+                    // Группируем площади по типам помещений
+                    Dictionary<string, double> roomAreas = allRooms
+                        .GroupBy(r =>
+                        {
+                            int? type = r.LookupParameter("КГ.Тип помещения")?.AsInteger() ?? 0;
+                            return "Тип" + type; // Формируем ключ с добавлением "Тип"
+                        })
+                        .ToDictionary(g => g.Key, g => Math.Round(g.Sum(r => r.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble()), 3));
+
+                    // Рассчитываем площади по формулам
+                    double livingArea = 0;
+                    double usualArea = 0;
+                    double totalArea = 0;
+
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(livingFormula))
+                        {
+                            livingArea = CalculateFormula(livingFormula, roomAreas);
+                        }
+                        if (!string.IsNullOrEmpty(usualFormula))
+                        {
+                            usualArea = CalculateFormula(usualFormula, roomAreas);
+                        }
+                        if (!string.IsNullOrEmpty(totalFormula))
+                        {
+                            totalArea = CalculateFormula(totalFormula, roomAreas);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Ошибка при расчете площадей на объекте: {ex.Message}");
+                        return; // Завершение метода, если произошла ошибка
+                    }
+
+                    // Записываем результаты в параметры всех помещений
+                    foreach (var room in allRooms)
+                    {
+                        UpdateRoomParameter(room, "КГ.S.Помещения с коэфф.", livingArea);
+                        UpdateRoomParameter(room, "КГ.S.ЖП.Площадь квартиры", usualArea);
+                        UpdateRoomParameter(room, "КГ.S.ЖПЛк.Общая площадь", totalArea);
+                        processedRooms++;
+                    }
+
+                    MessageBox.Show($"Расчет завершен. Обработано помещений: {processedRooms}");
+                }
 
                 tx.Commit();
-                totalViewAreaTextBlock.Text = $"Общая площадь: {UnitUtils.ConvertFromInternalUnits(totalViewArea, DisplayUnitType.DUT_SQUARE_METERS):F2} м²";
+                
             }
 
             // Закрываем окно после завершения расчета

@@ -150,7 +150,8 @@
             <!-- Группа выбора режима -->
             <GroupBox Header="Режим расчета" VerticalAlignment="Top" Margin="20,60,20,0" Height="80">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <RadioButton x:Name="allApartmentsRadioButton" Content="Все квартиры в виде" IsChecked="True" Margin="10"/>
+                    <RadioButton x:Name="allApartmentsOnObjectRadioButton" Content="Все квартире на объекте" Margin="10" IsChecked="True"/>
+                    <RadioButton x:Name="allApartmentsOnViewRadioButton" Content="Все квартиры на виде" Margin="10"/>
                     <RadioButton x:Name="selectedApartmentRadioButton" Content="Выбранная квартира" Margin="10"/>
                 </StackPanel>
             </GroupBox>
@@ -186,8 +187,6 @@
                     Click="CalculateButton_Click"/>
 
             <!-- Поле для отображения общей площади всех квартир -->
-            <TextBlock x:Name="totalViewAreaTextBlock" HorizontalAlignment="Center" VerticalAlignment="Bottom" 
-                       Margin="0,0,0,80" FontSize="14" FontWeight="Bold" Text="Общая площадь всех квартир: 0 м²"/>
         </Grid>
     </Border>
 </Window>

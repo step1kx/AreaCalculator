@@ -1,4 +1,21 @@
-﻿using Autodesk.Revit.Attributes;
+﻿/*==========================================================
+                   _______ _______ __  __                
+                  |  _____|__   __|  \/  |           
+                  | |___     | |  | \  / | 
+                  |  ___|    | |  | |\/| |
+                  | |_____   | |  | |  | |
+                  |_______|  |_|  |_|  |_|
+    
+
+
+[*] Developers:
+[*] Alexandr Savitski
+[*] Stepan Yuzefovich
+              
+
+ ===========================================================*/
+
+using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
@@ -14,12 +31,14 @@ namespace AreaCalc
     [Transaction(TransactionMode.Manual)]
     public class MainFunction_1 : IExternalCommand
     {
+        public static Document doc;
+        
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             UIApplication uiapp = commandData.Application;
             UIDocument activeUIDocument = uiapp.ActiveUIDocument;
             UIDocument uidoc = activeUIDocument;
-            Autodesk.Revit.DB.Document doc = uidoc.Document;
+            doc = uidoc.Document;
 
             MainWindow myWindow = new MainWindow(doc);
 
