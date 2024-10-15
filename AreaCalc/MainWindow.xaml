@@ -150,9 +150,9 @@
             <!-- Группа выбора режима -->
             <GroupBox Header="Режим расчета" VerticalAlignment="Top" Margin="20,60,20,0" Height="80">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <RadioButton x:Name="allApartmentsOnObjectRadioButton" Content="Все квартире на объекте" Margin="10" IsChecked="True"/>
+                    <RadioButton x:Name="allApartmentsOnObjectRadioButton" Content="Все квартире на объекте" Margin="10" />
                     <RadioButton x:Name="allApartmentsOnViewRadioButton" Content="Все квартиры на виде" Margin="10"/>
-                    <RadioButton x:Name="selectedApartmentRadioButton" Content="Выбранная квартира" Margin="10"/>
+                    <RadioButton x:Name="selectedApartmentRadioButton" Content="Выбранная квартира" Margin="10" IsChecked="True" Checked="selectedApartmentRadioButton_Checked"/>
                 </StackPanel>
             </GroupBox>
 
@@ -179,6 +179,15 @@
                     <ComboBox x:Name="apartmentComboBox" Width="350" Height="30"/>
                 </StackPanel>
             </StackPanel>
+
+            <Button x:Name="showHintButton" Content="Показать подсказку" 
+                 HorizontalAlignment="Left" VerticalAlignment="Bottom" 
+                 Width="150" Height="40" Margin="20,0,0,20" 
+                 Click="ShowHintButton_Click"/>
+
+            
+                    
+                
 
             <!-- Кнопка для выполнения расчета -->
             <Button x:Name="calculateButton" Content="Подсчет площадей" 
