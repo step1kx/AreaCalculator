@@ -55,7 +55,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoolToVisibilityConverter.cs" />
-    <Compile Include="Buttons.cs" />
     <Compile Include="MainFunction_1.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>

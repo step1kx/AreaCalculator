@@ -167,7 +167,33 @@ namespace AreaCalc
             }
         }
 
-        
+        //private double CalculateFormula(string formula, Dictionary<string, double> roomAreas)
+        //{
+        //    double result = 0;
+
+        //    // Разбираем формулу на части и обрабатываем каждый элемент
+        //    var elements = formula.Split(new[] { '+', '-', '*', '/' }, StringSplitOptions.RemoveEmptyEntries);
+
+        //    foreach (var element in elements)
+        //    {
+        //        string trimmedElement = element.Trim();
+
+        //        // Проверяем, существует ли этот тип помещения в словаре roomAreas
+        //        if (roomAreas.ContainsKey(trimmedElement))
+        //        {
+        //            result += roomAreas[trimmedElement]; // Если тип существует, добавляем его значение к результату
+        //        }
+        //        else
+        //        {
+        //            // Пропускаем элемент, если тип помещения отсутствует в квартире
+        //            Debug.WriteLine($"Тип {trimmedElement} не найден, пропуск.");
+        //        }
+        //    }
+
+        //    return result;
+        //}
+
+
 
         private void CalculateButton_Click(object sender, RoutedEventArgs e)
         {
@@ -285,7 +311,6 @@ namespace AreaCalc
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show($"Ошибка в квартире {apartmentNumber}: {ex.Message}");
                             continue;
                         }
 
@@ -302,6 +327,10 @@ namespace AreaCalc
                     }
 
                     MessageBox.Show($"Расчет завершен. Обработано квартир: {processed}");
+                }
+                else if (allApartmentsOnObjectRadioButton.IsChecked == true)
+                {
+
                 }
 
                 tx.Commit();
