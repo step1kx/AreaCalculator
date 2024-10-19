@@ -84,12 +84,16 @@
     </Window.Resources>
     <Grid>
         <TextBlock Text="Пример формулы для расчета площади" VerticalAlignment="Top" Margin="5,21,5,0" Height="33"></TextBlock>
-        <TextBox x:Name="FormulaTextBox" 
+        <!--<TextBox x:Name="FormulaTextBox" 
                  Text="Тип11 + Тип2 + Тип3" 
                  IsReadOnly="True" 
                  Margin="10,59,10,0" 
                  VerticalAlignment="Top" 
-                 Height="30"/>
+                 Height="30"/>-->
+
+        <ListBox x:Name="ApartmentInfoListBox"
+                 Margin="10,59,10,80" />
+
 
         <Button Content="Скопировать" 
                 HorizontalAlignment="Right" 
