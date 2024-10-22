@@ -29,8 +29,9 @@ namespace AreaCalc
             apartmentsData = new Dictionary<string, List<Room>>();
             roomCoefficients = new Dictionary<string, double>();
             GetApartmentData();
+            GetRoomCoefficients();
             PopulateApartmentComboBox();
-            GetRoomCoefficients(); // Получаем коэффициенты
+             // Получаем коэффициенты
         }
 
         private void GetApartmentData()
@@ -117,11 +118,9 @@ namespace AreaCalc
             var activeView = _doc.ActiveView.Id;
             var roomAll = new FilteredElementCollector(_doc, activeView)
                 .OfCategory(BuiltInCategory.OST_Rooms)
-                .WhereElementIsNotElementType()
-                .ToElements()
-                .Cast<Room>();
+                .WhereElementIsNotElementType();
 
-            foreach (var room in roomAll)
+            foreach (Room room in roomAll)
             {
                 Parameter roomTypeParam = room.LookupParameter("КГ.Тип помещения");
                 Parameter coefficientParam = room.LookupParameter("КГ.Коэффициент площади");
@@ -167,29 +166,50 @@ namespace AreaCalc
             }
         }
 
+        //private double CalculateFormula(string formula, Dictionary<string, double> roomAreas)
+        //{
+        //    foreach (var entry in roomAreas)
+        //    {
+        //        string pattern = $@"\b{Regex.Escape(entry.Key)}\b";
+        //        formula = Regex.Replace(formula, pattern, entry.Value.ToString(System.Globalization.CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
+        //    }
+
+        //    if (!Regex.IsMatch(formula, @"^[0-9A-Za-zА-Яа-яё\.\+\-\*/\(\)\s]*$"))
+        //    {
+        //        throw new Exception("Формула содержит недопустимые символы.");
+        //    }
+
+        //    DataTable table = new DataTable();
+
+        //        var result = table.Compute(formula, null);
+        //        return Convert.ToDouble(result);
+
+
+        //}
+
+
         private double CalculateFormula(string formula, Dictionary<string, double> roomAreas)
         {
+            // Заменяем все ключи из словаря на их значения
             foreach (var entry in roomAreas)
             {
                 string pattern = $@"\b{Regex.Escape(entry.Key)}\b";
                 formula = Regex.Replace(formula, pattern, entry.Value.ToString(System.Globalization.CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
             }
 
+            // Заменяем все оставшиеся ключи (которые не были найдены в словаре) на 0
+            formula = Regex.Replace(formula, @"\bТип\d+\b", "0");
+
+            // Проверяем формулу на наличие недопустимых символов
             if (!Regex.IsMatch(formula, @"^[0-9A-Za-zА-Яа-яё\.\+\-\*/\(\)\s]*$"))
             {
                 throw new Exception("Формула содержит недопустимые символы.");
             }
 
+            // Вычисляем результат
             DataTable table = new DataTable();
-            try
-            {
-                var result = table.Compute(formula, null);
-                return Convert.ToDouble(result);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Ошибка вычисления формулы: {ex.Message}");
-            }
+            var result = table.Compute(formula, null);
+            return Convert.ToDouble(result);
         }
 
 
@@ -265,6 +285,7 @@ namespace AreaCalc
                             UpdateRoomParameter(firstRoom, "КГ.S.Помещения с коэфф.", livingArea);
                             UpdateRoomParameter(firstRoom, "КГ.S.ЖП.Площадь квартиры", usualArea);
                             UpdateRoomParameter(firstRoom, "КГ.S.ЖПЛк.Общая площадь", totalArea);
+                            MessageBox.Show($"Значение " + livingArea +" было заполнено в КГ.S.Помещения с коэфф. ");
                         }
 
                         totalViewArea = totalArea;

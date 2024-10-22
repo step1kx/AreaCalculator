@@ -48,11 +48,13 @@ namespace AreaCalc
                     Parameter roomTypeParam = room.LookupParameter("КГ.Тип помещения");
                     Parameter areaParam = room.LookupParameter("Площадь");
 
+                    int roomTypeId = roomTypeParam.AsInteger();
+
                     // Получаем значения параметров
                     double roomArea = areaParam != null ? areaParam.AsDouble() : 0;
 
                     // Добавляем информацию о помещении
-                    ApartmentInfoListBox.Items.Add($"  Помещение: {room.Name}, Площадь: {roomArea} м²");
+                    ApartmentInfoListBox.Items.Add($"  Помещение: {room.Name}, Тип: {roomTypeId} Площадь: {roomArea} м²");
                 }
 
                 ApartmentInfoListBox.Items.Add(""); // Пустая строка для разделения квартир
