@@ -279,13 +279,15 @@ namespace AreaCalc
                             return;
                         }
 
-                        Room firstRoom = rooms.FirstOrDefault();
+                        Room firstRoom = rooms.First();
                         if (firstRoom != null)
                         {
+                            
                             UpdateRoomParameter(firstRoom, "КГ.S.Помещения с коэфф.", livingArea);
                             UpdateRoomParameter(firstRoom, "КГ.S.ЖП.Площадь квартиры", usualArea);
                             UpdateRoomParameter(firstRoom, "КГ.S.ЖПЛк.Общая площадь", totalArea);
                             MessageBox.Show($"Значение " + livingArea +" было заполнено в КГ.S.Помещения с коэфф. ");
+                            
                         }
 
                         totalViewArea = totalArea;
@@ -339,9 +341,11 @@ namespace AreaCalc
                         Room firstRoom = rooms.FirstOrDefault();
                         if (firstRoom != null)
                         {
+                            tx.Commit();
                             UpdateRoomParameter(firstRoom, "КГ.S.Помещения с коэфф.", livingArea);
                             UpdateRoomParameter(firstRoom, "КГ.S.ЖП.Площадь квартиры", usualArea);
                             UpdateRoomParameter(firstRoom, "КГ.S.ЖПЛк.Общая площадь", totalArea);
+                            tx.Start();
                         }
 
                         totalViewArea += totalArea;
@@ -446,10 +450,14 @@ namespace AreaCalc
 
         private void UpdateRoomParameter(Room room, string parameterName, double value)
         {
-            Parameter param = room.LookupParameter(parameterName);
-            if (param != null && !param.IsReadOnly)
+            using (Transaction tx = new Transaction(_doc, "Расчет площадей по формулам"))
             {
-                param.Set(value);
+                Parameter param = room.LookupParameter(parameterName);
+                if (param != null && !param.IsReadOnly)
+                {
+                    param.Set(value);
+                }
+                
             }
         }
 
