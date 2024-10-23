@@ -7,6 +7,7 @@
 
 
 # Скриншоты работы программы
+![image](https://github.com/user-attachments/assets/9d95fc82-0227-47b8-8533-b7648bb84cdb)
 
 
 
