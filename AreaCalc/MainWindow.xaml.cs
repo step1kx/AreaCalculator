@@ -21,6 +21,7 @@ namespace AreaCalc
         public static Dictionary<string, List<Room>> apartmentsData;
         public static Dictionary<string, double> roomCoefficients; // Словарь с коэффициентами
         Parameter roomTypeParam;
+        
 
         public MainWindow(Autodesk.Revit.DB.Document doc)
         {
@@ -54,9 +55,6 @@ namespace AreaCalc
                     
                     continue;
                 }
-
-                
-
                 string apartmentNumber = apartmentNumberParam.AsString();
                 double area = areaParam.HasValue ? areaParam.AsDouble() : 0;
                 int? roomType = roomTypeParam?.AsInteger();
@@ -218,9 +216,9 @@ namespace AreaCalc
 
         private void CalculateButton_Click(object sender, RoutedEventArgs e)
         {
-            string livingFormula = livingFormulaTextBox.Text.Trim();
-            string usualFormula = usualFormulaTextBox.Text.Trim();
-            string totalFormula = totalFormulaTextBox.Text.Trim();
+            string livingFormula = livingFormulaTextBox.Text;
+            string usualFormula = usualFormulaTextBox.Text;
+            string totalFormula = totalFormulaTextBox.Text;
 
             if (string.IsNullOrEmpty(livingFormula) && string.IsNullOrEmpty(usualFormula) && string.IsNullOrEmpty(totalFormula))
             {
@@ -279,15 +277,14 @@ namespace AreaCalc
                             return;
                         }
 
-                        Room firstRoom = rooms.First();
-                        if (firstRoom != null)
+                        int targetRoomType = 11; // Тип нужного помещения
+                        Room targetRoom = rooms
+                            .FirstOrDefault(r => r.LookupParameter("КГ.Тип помещения")?.AsInteger() == targetRoomType);
+                        if (targetRoom != null)
                         {
-                            
-                            UpdateRoomParameter(firstRoom, "КГ.S.Помещения с коэфф.", livingArea);
-                            UpdateRoomParameter(firstRoom, "КГ.S.ЖП.Площадь квартиры", usualArea);
-                            UpdateRoomParameter(firstRoom, "КГ.S.ЖПЛк.Общая площадь", totalArea);
-                            MessageBox.Show($"Значение " + livingArea +" было заполнено в КГ.S.Помещения с коэфф. ");
-                            
+                            UpdateRoomParameter(targetRoom, "КГ.S.Помещения с коэфф.", livingArea);
+                            UpdateRoomParameter(targetRoom, "КГ.S.ЖП.Площадь квартиры", usualArea);
+                            UpdateRoomParameter(targetRoom, "КГ.S.ЖПЛк.Общая площадь", totalArea);
                         }
 
                         totalViewArea = totalArea;
@@ -335,17 +332,18 @@ namespace AreaCalc
                         }
                         catch (Exception ex)
                         {
+                            MessageBox.Show($"Проблема в {ex}");
                             continue;
                         }
 
-                        Room firstRoom = rooms.FirstOrDefault();
-                        if (firstRoom != null)
+                        int targetRoomType = 11; // Тип нужного помещения
+                        Room targetRoom = rooms
+                            .FirstOrDefault(r => r.LookupParameter("КГ.Тип помещения")?.AsInteger() == targetRoomType);
+                        if (targetRoom != null)
                         {
-                            tx.Commit();
-                            UpdateRoomParameter(firstRoom, "КГ.S.Помещения с коэфф.", livingArea);
-                            UpdateRoomParameter(firstRoom, "КГ.S.ЖП.Площадь квартиры", usualArea);
-                            UpdateRoomParameter(firstRoom, "КГ.S.ЖПЛк.Общая площадь", totalArea);
-                            tx.Start();
+                            UpdateRoomParameter(targetRoom, "КГ.S.Помещения с коэфф.", livingArea);
+                            UpdateRoomParameter(targetRoom, "КГ.S.ЖП.Площадь квартиры", usualArea);
+                            UpdateRoomParameter(targetRoom, "КГ.S.ЖПЛк.Общая площадь", totalArea);
                         }
 
                         totalViewArea += totalArea;
@@ -366,6 +364,7 @@ namespace AreaCalc
 
                     foreach (var room in allRooms)
                     {
+                        
                         // Проверка наличия необходимых параметров (тип помещения и марка)
                         var apartmentNumberParam = room.LookupParameter("КГ.Номер квартиры");
                         var roomTypeParam = room.LookupParameter("КГ.Тип помещения");
@@ -380,7 +379,6 @@ namespace AreaCalc
                         string apartmentNumber = apartmentNumberParam.AsString();
                         if (string.IsNullOrEmpty(apartmentNumber))
                         {
-                            // Пропуск помещений без номера квартиры
                             continue;
                         }
 
@@ -425,17 +423,21 @@ namespace AreaCalc
                         }
                         catch (Exception ex)
                         {
-                            // Игнорируем ошибки для отдельных квартир
+                            MessageBox.Show($"Проблема в {ex}");
                             continue;
                         }
 
-                        Room firstRoom = apartmentsData[apartmentNumber].FirstOrDefault();
-                        if (firstRoom != null)
+                        int targetRoomType = 11; // Тип нужного помещения
+                        Room targetRoom = allRooms
+                            .FirstOrDefault(r => r.LookupParameter("КГ.Тип помещения")?.AsInteger() == targetRoomType);
+                        if (targetRoom != null)
                         {
-                            UpdateRoomParameter(firstRoom, "КГ.S.Помещения с коэфф.", livingArea);
-                            UpdateRoomParameter(firstRoom, "КГ.S.ЖП.Площадь квартиры", usualArea);
-                            UpdateRoomParameter(firstRoom, "КГ.S.ЖПЛк.Общая площадь", totalArea);
+                            UpdateRoomParameter(targetRoom, "КГ.S.Помещения с коэфф.", livingArea);
+                            UpdateRoomParameter(targetRoom, "КГ.S.ЖП.Площадь квартиры", usualArea);
+                            UpdateRoomParameter(targetRoom, "КГ.S.ЖПЛк.Общая площадь", totalArea);
                         }
+
+
 
                         totalViewArea += totalArea;
                         processed++;
@@ -449,16 +451,12 @@ namespace AreaCalc
         }
 
         private void UpdateRoomParameter(Room room, string parameterName, double value)
-        {
-            using (Transaction tx = new Transaction(_doc, "Расчет площадей по формулам"))
-            {
+        {          
                 Parameter param = room.LookupParameter(parameterName);
                 if (param != null && !param.IsReadOnly)
                 {
                     param.Set(value);
-                }
-                
-            }
+                }   
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
