@@ -46,6 +46,7 @@ namespace AreaCalc
             {
                 Parameter apartmentNumberParam = room.LookupParameter("КГ.Номер квартиры");
                 Parameter areaParam = room.get_Parameter(BuiltInParameter.ROOM_AREA);
+                Parameter roomFilterParam = room.LookupParameter("КГ.Фильтр");
                 roomTypeParam = room.LookupParameter("КГ.Тип помещения");
                 string roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString();
                 //Отсеиваем помещения без номеров квартир(например, Лестничная клетка и Лифт)
@@ -55,11 +56,12 @@ namespace AreaCalc
                     
                     continue;
                 }
+                string roomFilter = roomFilterParam?.AsString();
                 string apartmentNumber = apartmentNumberParam.AsString();
                 double area = areaParam.HasValue ? areaParam.AsDouble() : 0;
                 int? roomType = roomTypeParam?.AsInteger();
 
-                if (apartmentNumberParam == null || areaParam == null || roomTypeParam == null)
+                if (apartmentNumberParam == null || areaParam == null || roomTypeParam == null || roomFilterParam == null)
                 {
                     // Создаем список отсутствующих параметров
                     List<string> missingParams = new List<string>();
@@ -78,6 +80,12 @@ namespace AreaCalc
                     {
                         missingParams.Add("КГ.Тип помещения");
                     }
+
+                    if(roomFilterParam == null)
+                    {
+                        missingParams.Add(roomFilter);
+                    }
+                    
 
                     // Преобразуем список в строку
                     string missingParamsMessage = string.Join(", ", missingParams);
@@ -120,7 +128,7 @@ namespace AreaCalc
 
             foreach (Room room in roomAll)
             {
-                Parameter roomTypeParam = room.LookupParameter("КГ.Тип помещения");
+                roomTypeParam = room.LookupParameter("КГ.Тип помещения");
                 Parameter coefficientParam = room.LookupParameter("КГ.Коэффициент площади");
 
                 int roomTypeId = roomTypeParam.AsInteger();
@@ -276,16 +284,21 @@ namespace AreaCalc
                             MessageBox.Show($"Ошибка в квартире {apartmentNumber}: {ex.Message}");
                             return;
                         }
-
-                        int targetRoomType = 11; // Тип нужного помещения
-                        Room targetRoom = rooms
-                            .FirstOrDefault(r => r.LookupParameter("КГ.Тип помещения")?.AsInteger() == targetRoomType);
-                        if (targetRoom != null)
+                        try
                         {
-                            UpdateRoomParameter(targetRoom, "КГ.S.Помещения с коэфф.", livingArea);
-                            UpdateRoomParameter(targetRoom, "КГ.S.ЖП.Площадь квартиры", usualArea);
-                            UpdateRoomParameter(targetRoom, "КГ.S.ЖПЛк.Общая площадь", totalArea);
+                            foreach (Room room in rooms)
+                            {
+                                UpdateRoomParameter(room, "КГ.S.Ж", livingArea);
+                                UpdateRoomParameter(room, "КГ.S.ЖП.Площадь квартиры", usualArea);
+                                UpdateRoomParameter(room, "КГ.S.ЖПЛк.Общая площадь", totalArea);
+                            }
+
                         }
+                        catch(Exception ex)
+                        {
+                            MessageBox.Show("пПРОБЕЛМА" + ex);
+                        }
+                        
 
                         totalViewArea = totalArea;
                     }
@@ -336,14 +349,11 @@ namespace AreaCalc
                             continue;
                         }
 
-                        int targetRoomType = 11; // Тип нужного помещения
-                        Room targetRoom = rooms
-                            .FirstOrDefault(r => r.LookupParameter("КГ.Тип помещения")?.AsInteger() == targetRoomType);
-                        if (targetRoom != null)
+                        foreach (Room roomPar in rooms)
                         {
-                            UpdateRoomParameter(targetRoom, "КГ.S.Помещения с коэфф.", livingArea);
-                            UpdateRoomParameter(targetRoom, "КГ.S.ЖП.Площадь квартиры", usualArea);
-                            UpdateRoomParameter(targetRoom, "КГ.S.ЖПЛк.Общая площадь", totalArea);
+                            UpdateRoomParameter(roomPar, "КГ.S.Ж", livingArea);
+                            UpdateRoomParameter(roomPar, "КГ.S.ЖП.Площадь квартиры", usualArea);
+                            UpdateRoomParameter(roomPar, "КГ.S.ЖПЛк.Общая площадь", totalArea);
                         }
 
                         totalViewArea += totalArea;
@@ -427,14 +437,11 @@ namespace AreaCalc
                             continue;
                         }
 
-                        int targetRoomType = 11; // Тип нужного помещения
-                        Room targetRoom = allRooms
-                            .FirstOrDefault(r => r.LookupParameter("КГ.Тип помещения")?.AsInteger() == targetRoomType);
-                        if (targetRoom != null)
+                        foreach (Room roomPar in allRooms)
                         {
-                            UpdateRoomParameter(targetRoom, "КГ.S.Помещения с коэфф.", livingArea);
-                            UpdateRoomParameter(targetRoom, "КГ.S.ЖП.Площадь квартиры", usualArea);
-                            UpdateRoomParameter(targetRoom, "КГ.S.ЖПЛк.Общая площадь", totalArea);
+                            UpdateRoomParameter(roomPar, "КГ.S.Ж", livingArea);
+                            UpdateRoomParameter(roomPar, "КГ.S.ЖП.Площадь квартиры", usualArea);
+                            UpdateRoomParameter(roomPar, "КГ.S.ЖПЛк.Общая площадь", totalArea);
                         }
 
 
