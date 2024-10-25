@@ -23,8 +23,6 @@ namespace AreaCalc
     public partial class TipWindow : Window
         
     {
-        private Dictionary<string, Dictionary<string, double>> _apartments;
-
         private Dictionary<string, List<Room>> _apartmentsData;
 
         public TipWindow(Dictionary<string, List<Room>> apartmentsData)
@@ -34,44 +32,62 @@ namespace AreaCalc
             PopulateApartmentInfoList();
         }
 
-        // Метод для заполнения ListBox информацией о квартирах и помещениях
         private void PopulateApartmentInfoList()
         {
-            foreach (var apartment in _apartmentsData)
+            var roomTypes = new List<(int TypeId, string RoomName)>();
+            var uniqueRoomNames = new HashSet<string>(); // Для отслеживания уникальных названий
+
+            foreach (var rooms in _apartmentsData.Values)
             {
-                // Добавляем номер квартиры
-                ApartmentInfoListBox.Items.Add($"Квартира {apartment.Key}:");
-
-                // Обрабатываем каждую комнату
-                foreach (var room in apartment.Value)
+                foreach (var room in rooms)
                 {
-                    Parameter roomTypeParam = room.LookupParameter("КГ.Тип помещения");
-                    Parameter areaParam = room.LookupParameter("Площадь");
-                    Parameter roomFilterParam = room.LookupParameter("КГ.Фильтр");
+                    var roomTypeParam = room.LookupParameter("КГ.Тип помещения");
+                    var roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString();
 
-                    int roomTypeId = roomTypeParam.AsInteger();
+                    if (roomTypeParam != null && roomName != null)
+                    {
+                        int roomTypeId = roomTypeParam.AsInteger();
 
-                    // Получаем значения параметров
-                    double roomArea = areaParam != null ? areaParam.AsDouble() : 0;
+                        // Добавляем только типы с значением > 0
+                        if (roomTypeId > 0)
+                        {
+                            // Проверяем, есть ли уже такое название
+                            if (uniqueRoomNames.Add(roomName)) // Если добавление прошло успешно, значит названия не было
+                            {
+                                roomTypes.Add((roomTypeId, roomName));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
 
-                    string roomFilter = roomFilterParam.AsString();
-
-                    // Добавляем информацию о помещении
-                    ApartmentInfoListBox.Items.Add($"  Помещение: {room.Name}, Тип: {roomTypeId} Площадь: {roomArea} м² Фильтр: {roomFilter}");
                 }
+            }
 
-                ApartmentInfoListBox.Items.Add(""); // Пустая строка для разделения квартир
+            // Добавляем все найденные типы и названия в ListBox
+            foreach (var roomType in roomTypes)
+            {
+                ApartmentInfoListBox.Items.Add($"Тип помещения: {roomType.TypeId}   Название: {roomType.RoomName}");
             }
         }
 
-        private void CopyFormulaButton_Click(object sender, RoutedEventArgs e)
+        // Метод для перемещения окна
+        private void MovingWin(object sender, EventArgs e)
         {
-            // Копируем текст формулы в буфер обмена
-            //Clipboard.SetText(FormulaTextBox.Text);
-            MessageBox.Show("Формула скопирована в буфер обмена!");
+            if (Mouse.LeftButton == MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
         }
 
-
+        // Обработчик для кнопки отмены
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+            Close();
+        }
 
     }
 }

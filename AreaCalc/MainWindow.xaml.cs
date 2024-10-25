@@ -1,7 +1,4 @@
-﻿
-
-
-using Autodesk.Revit.DB;
+﻿using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
@@ -12,6 +9,8 @@ using System.Data;
 using Autodesk.Revit.DB.Architecture;
 using System.Windows.Input;
 using System.Diagnostics;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace AreaCalc
 {
@@ -29,14 +28,12 @@ namespace AreaCalc
             _doc = doc;
             apartmentsData = new Dictionary<string, List<Room>>();
             roomCoefficients = new Dictionary<string, double>();
-            GetApartmentData();
-            GetRoomCoefficients();
-            PopulateApartmentComboBox();
-             // Получаем коэффициенты
         }
 
         private void GetApartmentData()
         {
+            apartmentsData.Clear();
+
             var activeView = _doc.ActiveView.Id;
             FilteredElementCollector apartmentCollector = new FilteredElementCollector(_doc, activeView)
                 .OfCategory(BuiltInCategory.OST_Rooms)
@@ -51,9 +48,8 @@ namespace AreaCalc
                 string roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString();
                 //Отсеиваем помещения без номеров квартир(например, Лестничная клетка и Лифт)
 
-                if (roomName == "Лестничная клетка" || roomName == "Лифт")
+                if (roomName == "Лестничная клетка" || roomName == "Лифт" )
                 {
-                    
                     continue;
                 }
                 string roomFilter = roomFilterParam?.AsString();
@@ -107,14 +103,31 @@ namespace AreaCalc
             }
         }
 
-        private void MovingWin(object sender, EventArgs e)
+        private void InitializeApartmentsData()
         {
-            if (Mouse.LeftButton == MouseButtonState.Pressed)
+            apartmentsData.Clear();
+
+            var allRooms = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_Rooms)
+                .WhereElementIsNotElementType()
+                .Cast<Room>();
+
+            foreach (var room in allRooms)
             {
-                this.DragMove();
+                var apartmentNumberParam = room.LookupParameter("КГ.Номер квартиры");
+                if (apartmentNumberParam == null) continue;
+
+                string apartmentNumber = apartmentNumberParam.AsString();
+                if (string.IsNullOrEmpty(apartmentNumber)) continue;
+
+                if (!apartmentsData.ContainsKey(apartmentNumber))
+                {
+                    apartmentsData[apartmentNumber] = new List<Room>();
+                }
+
+                apartmentsData[apartmentNumber].Add(room);
             }
         }
-
 
         private void GetRoomCoefficients()
         {
@@ -137,7 +150,7 @@ namespace AreaCalc
                 // Проверка на наличие параметров
                 if (roomTypeParam != null && coefficientParam != null)
                 {
-                    
+
 
                     // Условие для добавления типа помещения и коэффициента
                     if (roomTypeId > 0 && coefficient > 0) // Пропускаем типы с 0 и отсутствующими коэффициентами
@@ -147,7 +160,7 @@ namespace AreaCalc
                         // Если коэффициент не был добавлен, добавляем его
                         if (!roomCoefficients.ContainsKey(roomType))
                         {
-                            roomCoefficients[roomType] = coefficient;                          
+                            roomCoefficients[roomType] = coefficient;
                         }
                     }
                     else
@@ -163,6 +176,29 @@ namespace AreaCalc
             }
         }
 
+        #region// Обработчики для радиокнопок
+        private void SelectedApartmentRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            GetApartmentData();
+            GetRoomCoefficients();
+            PopulateApartmentComboBox();
+        }
+
+        private void AllApartmentsOnViewRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            GetApartmentData();
+            GetRoomCoefficients();
+        }
+
+        private void AllApartmentsOnObjectRadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            InitializeApartmentsData();
+            GetRoomCoefficients();
+        }
+        #endregion
+       
+       
+
         private void PopulateApartmentComboBox()
         {
             apartmentComboBox.Items.Clear();
@@ -171,28 +207,6 @@ namespace AreaCalc
                 apartmentComboBox.Items.Add($"Квартира № {kvp.Key} (Помещений: {kvp.Value.Count})"); // Добавление номера квартиры и количества помещений
             }
         }
-
-        //private double CalculateFormula(string formula, Dictionary<string, double> roomAreas)
-        //{
-        //    foreach (var entry in roomAreas)
-        //    {
-        //        string pattern = $@"\b{Regex.Escape(entry.Key)}\b";
-        //        formula = Regex.Replace(formula, pattern, entry.Value.ToString(System.Globalization.CultureInfo.InvariantCulture), RegexOptions.IgnoreCase);
-        //    }
-
-        //    if (!Regex.IsMatch(formula, @"^[0-9A-Za-zА-Яа-яё\.\+\-\*/\(\)\s]*$"))
-        //    {
-        //        throw new Exception("Формула содержит недопустимые символы.");
-        //    }
-
-        //    DataTable table = new DataTable();
-
-        //        var result = table.Compute(formula, null);
-        //        return Convert.ToDouble(result);
-
-
-        //}
-
 
         private double CalculateFormula(string formula, Dictionary<string, double> roomAreas)
         {
@@ -218,21 +232,14 @@ namespace AreaCalc
             return Convert.ToDouble(result);
         }
 
-
-
-
-
         private void CalculateButton_Click(object sender, RoutedEventArgs e)
         {
             string livingFormula = livingFormulaTextBox.Text;
             string usualFormula = usualFormulaTextBox.Text;
             string totalFormula = totalFormulaTextBox.Text;
 
-            if (string.IsNullOrEmpty(livingFormula) && string.IsNullOrEmpty(usualFormula) && string.IsNullOrEmpty(totalFormula))
-            {
-                MessageBox.Show("Пожалуйста, введите хотя бы одну формулу.");
+            if (!AreFormulasValid(livingFormula, usualFormula, totalFormula))
                 return;
-            }
 
             using (Transaction tx = new Transaction(_doc, "Расчет площадей по формулам"))
             {
@@ -241,222 +248,137 @@ namespace AreaCalc
 
                 if (selectedApartmentRadioButton.IsChecked == true)
                 {
-                    string selectedApartment = apartmentComboBox.SelectedItem?.ToString();
-                    if (string.IsNullOrEmpty(selectedApartment))
-                    {
-                        MessageBox.Show("Пожалуйста, выберите квартиру.");
-                        return;
-                    }
-
-                    string apartmentNumber = selectedApartment.Split(' ')[2];
-
-                    if (apartmentsData.TryGetValue(apartmentNumber, out List<Room> rooms))
-                    {
-                        Dictionary<string, double> roomAreas = rooms
-                            .GroupBy(r =>
-                            {
-                                int? type = r.LookupParameter("КГ.Тип помещения")?.AsInteger() ?? 0;
-                                return "Тип" + type;
-                            })
-                            .ToDictionary(g => g.Key, g => Math.Round(g.Sum(r => r.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble()), 3));
-
-                        double livingArea = 0;
-                        double usualArea = 0;
-                        double totalArea = 0;
-
-                        try
-                        {
-                            if (!string.IsNullOrEmpty(livingFormula))
-                            {
-                                livingArea = CalculateFormula(livingFormula, roomAreas);
-                            }
-                            if (!string.IsNullOrEmpty(usualFormula))
-                            {
-                                usualArea = CalculateFormula(usualFormula, roomAreas);
-                            }
-                            if (!string.IsNullOrEmpty(totalFormula))
-                            {
-                                totalArea = CalculateFormula(totalFormula, roomAreas);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($"Ошибка в квартире {apartmentNumber}: {ex.Message}");
-                            return;
-                        }
-                        try
-                        {
-                            foreach (Room room in rooms)
-                            {
-                                UpdateRoomParameter(room, "КГ.S.Ж", livingArea);
-                                UpdateRoomParameter(room, "КГ.S.ЖП.Площадь квартиры", usualArea);
-                                UpdateRoomParameter(room, "КГ.S.ЖПЛк.Общая площадь", totalArea);
-                            }
-
-                        }
-                        catch(Exception ex)
-                        {
-                            MessageBox.Show("пПРОБЕЛМА" + ex);
-                        }
-                        
-
-                        totalViewArea = totalArea;
-                    }
-                    else
-                    {
-                        MessageBox.Show("Квартира не найдена в данных.");
-                    }
+                    ProcessSelectedApartment(livingFormula, usualFormula, totalFormula, ref totalViewArea);
                 }
                 else if (allApartmentsOnViewRadioButton.IsChecked == true)
                 {
-                    int processed = 0;
-
-                    foreach (var room in apartmentsData)
-                    {
-                        string apartmentNumber = room.Key;
-                        List<Room> rooms = room.Value;
-
-                        Dictionary<string, double> roomAreas = rooms
-                            .GroupBy(r =>
-                            {
-                                int? type = r.LookupParameter("КГ.Тип помещения")?.AsInteger() ?? 0;
-                                return "Тип" + type;
-                            })
-                            .ToDictionary(g => g.Key, g => Math.Round(g.Sum(r => r.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble()), 3));
-
-                        double livingArea = 0;
-                        double usualArea = 0;
-                        double totalArea = 0;
-
-                        try
-                        {
-                            if (!string.IsNullOrEmpty(livingFormula))
-                            {
-                                livingArea = CalculateFormula(livingFormula, roomAreas);
-                            }
-                            if (!string.IsNullOrEmpty(usualFormula))
-                            {
-                                usualArea = CalculateFormula(usualFormula, roomAreas);
-                            }
-                            if (!string.IsNullOrEmpty(totalFormula))
-                            {
-                                totalArea = CalculateFormula(totalFormula, roomAreas);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($"Проблема в {ex}");
-                            continue;
-                        }
-
-                        foreach (Room roomPar in rooms)
-                        {
-                            UpdateRoomParameter(roomPar, "КГ.S.Ж", livingArea);
-                            UpdateRoomParameter(roomPar, "КГ.S.ЖП.Площадь квартиры", usualArea);
-                            UpdateRoomParameter(roomPar, "КГ.S.ЖПЛк.Общая площадь", totalArea);
-                        }
-
-                        totalViewArea += totalArea;
-                        processed++;
-                    }
-
-                    MessageBox.Show($"Расчет завершен. Обработано квартир: {processed}");
+                    ProcessAllApartmentsOnView(livingFormula, usualFormula, totalFormula, ref totalViewArea);
                 }
                 else if (allApartmentsOnObjectRadioButton.IsChecked == true)
                 {
-                    // Получаем все помещения на проекте
-                    var allRooms = new FilteredElementCollector(_doc)
-                        .OfCategory(BuiltInCategory.OST_Rooms)
-                        .WhereElementIsNotElementType()
-                        .Cast<Room>();
-
-                    int processed = 0;
-
-                    foreach (var room in allRooms)
-                    {
-                        
-                        // Проверка наличия необходимых параметров (тип помещения и марка)
-                        var apartmentNumberParam = room.LookupParameter("КГ.Номер квартиры");
-                        var roomTypeParam = room.LookupParameter("КГ.Тип помещения");
-                        var areaParam = room.get_Parameter(BuiltInParameter.ROOM_AREA);
-
-                        if (apartmentNumberParam == null || roomTypeParam == null || areaParam == null)
-                        {
-                            // Пропуск помещения без номера квартиры, типа или площади
-                            continue;
-                        }
-
-                        string apartmentNumber = apartmentNumberParam.AsString();
-                        if (string.IsNullOrEmpty(apartmentNumber))
-                        {
-                            continue;
-                        }
-
-                        int roomTypeId = roomTypeParam.AsInteger();
-                        string roomType = "Тип" + roomTypeId;
-                        double roomArea = areaParam.AsDouble();
-
-                        // Добавление данных в словарь, если тип помещения существует
-                        if (!apartmentsData.ContainsKey(apartmentNumber))
-                        {
-                            apartmentsData[apartmentNumber] = new List<Room>();
-                        }
-
-                        apartmentsData[apartmentNumber].Add(room);
-
-                        Dictionary<string, double> roomAreas = apartmentsData[apartmentNumber]
-                            .GroupBy(r =>
-                            {
-                                int? type = r.LookupParameter("КГ.Тип помещения")?.AsInteger() ?? 0;
-                                return "Тип" + type;
-                            })
-                            .ToDictionary(g => g.Key, g => Math.Round(g.Sum(r => r.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble()), 3));
-
-                        double livingArea = 0;
-                        double usualArea = 0;
-                        double totalArea = 0;
-
-                        try
-                        {
-                            if (!string.IsNullOrEmpty(livingFormula))
-                            {
-                                livingArea = CalculateFormula(livingFormula, roomAreas);
-                            }
-                            if (!string.IsNullOrEmpty(usualFormula))
-                            {
-                                usualArea = CalculateFormula(usualFormula, roomAreas);
-                            }
-                            if (!string.IsNullOrEmpty(totalFormula))
-                            {
-                                totalArea = CalculateFormula(totalFormula, roomAreas);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($"Проблема в {ex}");
-                            continue;
-                        }
-
-                        foreach (Room roomPar in allRooms)
-                        {
-                            UpdateRoomParameter(roomPar, "КГ.S.Ж", livingArea);
-                            UpdateRoomParameter(roomPar, "КГ.S.ЖП.Площадь квартиры", usualArea);
-                            UpdateRoomParameter(roomPar, "КГ.S.ЖПЛк.Общая площадь", totalArea);
-                        }
-
-
-
-                        totalViewArea += totalArea;
-                        processed++;
-                    }
-
-                    MessageBox.Show($"Расчет завершен. Обработано квартир: {processed}");
+                    ProcessAllApartmentsInObject(livingFormula, usualFormula, totalFormula, ref totalViewArea);
                 }
 
+                
                 tx.Commit();
             }
         }
 
+        private bool AreFormulasValid(string livingFormula, string usualFormula, string totalFormula)
+        {
+            if (string.IsNullOrEmpty(livingFormula) && string.IsNullOrEmpty(usualFormula) && string.IsNullOrEmpty(totalFormula))
+            {
+                MessageBox.Show("Пожалуйста, введите хотя бы одну формулу.");
+                return false;
+            }
+            return true;
+        }
+
+        private void ProcessSelectedApartment(string livingFormula, string usualFormula, string totalFormula, ref double totalViewArea)
+        {
+
+            string selectedApartment = apartmentComboBox.SelectedItem?.ToString();
+            if (string.IsNullOrEmpty(selectedApartment))
+            {
+                MessageBox.Show("Пожалуйста, выберите квартиру.");
+                return;
+            }
+
+            string apartmentNumber = selectedApartment.Split(' ')[2];
+            if (apartmentsData.TryGetValue(apartmentNumber, out List<Room> rooms))
+            {
+                var roomAreas = CalculateRoomAreas(rooms);
+                CalculateAndUpdateRoomParameters(rooms, roomAreas, livingFormula, usualFormula, totalFormula, ref totalViewArea);
+            }
+            else
+            {
+                MessageBox.Show("Квартира не найдена в данных.");
+            }
+        }
+
+        private void ProcessAllApartmentsOnView(string livingFormula, string usualFormula, string totalFormula, ref double totalViewArea)
+        { 
+            int processed = 0;
+
+            foreach (var room in apartmentsData)
+            {
+                string apartmentNumber = room.Key;
+                List<Room> rooms = room.Value;
+
+                var roomAreas = CalculateRoomAreas(rooms);
+                double area = 0;
+                CalculateAndUpdateRoomParameters(rooms, roomAreas, livingFormula, usualFormula, totalFormula, ref area);
+
+                totalViewArea += area;
+                processed++;
+            }
+
+            MessageBox.Show($"Расчет завершен. Обработано квартир: {processed}");
+        }
+
+        private void ProcessAllApartmentsInObject(string livingFormula, string usualFormula, string totalFormula, ref double totalViewArea)
+        {
+            int processed = 0;
+            InitializeApartmentsData();
+
+            foreach (var roomData in apartmentsData)
+            {
+                List<Room> rooms = roomData.Value;
+                var roomAreas = CalculateRoomAreas(rooms);
+                double area = 0;
+                CalculateAndUpdateRoomParameters(rooms, roomAreas, livingFormula, usualFormula, totalFormula, ref area);
+
+                totalViewArea += area;
+                processed++;
+            }
+
+            MessageBox.Show($"Расчет завершен. Обработано квартир: {processed}");
+        }
+
+        private Dictionary<string, double> CalculateRoomAreas(List<Room> rooms)
+        {
+            return rooms
+                .GroupBy(r =>
+                {
+                    int? type = r.LookupParameter("КГ.Тип помещения")?.AsInteger() ?? 0;
+                    return "Тип" + type;
+                })
+                .ToDictionary(g => g.Key, g => Math.Round(g.Sum(r => r.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble()), 3));
+        }
+
+        private void CalculateAndUpdateRoomParameters(List<Room> rooms, Dictionary<string, double> roomAreas, string livingFormula, string usualFormula, string totalFormula, ref double totalArea)
+        {
+            double livingArea = 0;
+            double usualArea = 0;
+            double calculatedTotalArea = 0;
+
+            try
+            {
+                if (!string.IsNullOrEmpty(livingFormula))
+                    livingArea = CalculateFormula(livingFormula, roomAreas);
+
+                if (!string.IsNullOrEmpty(usualFormula))
+                    usualArea = CalculateFormula(usualFormula, roomAreas);
+
+                if (!string.IsNullOrEmpty(totalFormula))
+                    calculatedTotalArea = CalculateFormula(totalFormula, roomAreas);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка в расчете: {ex.Message}");
+                return;
+            }
+
+            foreach (Room room in rooms)
+            {
+                UpdateRoomParameter(room, "КГ.S.Ж", livingArea);
+                UpdateRoomParameter(room, "КГ.S.ЖП.Площадь квартиры", usualArea);
+                UpdateRoomParameter(room, "КГ.S.ЖПЛк.Общая площадь", calculatedTotalArea);
+            }
+
+            totalArea = calculatedTotalArea;
+        }
+        #region Вспомогательные методы
         private void UpdateRoomParameter(Room room, string parameterName, double value)
         {          
                 Parameter param = room.LookupParameter(parameterName);
@@ -466,24 +388,58 @@ namespace AreaCalc
                 }   
         }
 
+        private void MovingWin(object sender, EventArgs e)
+        {
+            if (Mouse.LeftButton == MouseButtonState.Pressed)
+            {
+                this.DragMove();
+            }
+        }
+
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
             Close();
         }
 
-        private void selectedApartmentRadioButton_Checked(object sender, RoutedEventArgs e)
+        private void TextBox_GotFocus(object sender, RoutedEventArgs e)
         {
+            System.Windows.Controls.TextBox textBox = sender as System.Windows.Controls.TextBox;
+            if (textBox != null && textBox.Foreground == Brushes.Gray)
+            {
+                textBox.Text = string.Empty;
+                textBox.Foreground = Brushes.Black;
+            }
+        }
 
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            System.Windows.Controls.TextBox textBox = sender as System.Windows.Controls.TextBox;
+            if (textBox != null && string.IsNullOrWhiteSpace(textBox.Text))
+            {
+                textBox.Foreground = Brushes.Gray;
+                if (textBox.Name == "livingFormulaTextBox")
+                {
+                    textBox.Text = "Пример: Тип11*0.75";
+                }
+                else if (textBox.Name == "usualFormulaTextBox")
+                {
+                    textBox.Text = "Пример: Тип11*0.75 + Тип2";
+                }
+                else if (textBox.Name == "totalFormulaTextBox")
+                {
+                    textBox.Text = "Пример: Тип11*0.75 + Тип2 + Тип3*0.3";
+                }
+            }
         }
 
         private void ShowHintButton_Click(object sender, RoutedEventArgs args)
         {
-            TipWindow tipWindow = new TipWindow(apartmentsData);
+            InitializeApartmentsData();
+            var tipWindow = new TipWindow(apartmentsData);
             tipWindow.ShowDialog();
-            
-
         }
+        #endregion
     }
 }
 

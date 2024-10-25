@@ -5,16 +5,21 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:AreaCalc"
              mc:Ignorable="d" 
-             Width="500"
-             Height="200"
+             Width="750"
+             Height="794"
+             WindowStyle="None" 
+             AllowsTransparency="True" 
              WindowStartupLocation="CenterScreen" 
-             Title="Подсказка по типам помещений">
+             Title="Справка"
+             Background="Transparent"
+             MouseDown="MovingWin">
+
     <Window.Resources>
-        <Style TargetType="TextBlock">
+        <Style TargetType="Paragraph">
             <Setter Property="Padding" Value="5"/>
             <Setter Property="Margin" Value="5"/>
-            <Setter Property="FontFamily" Value="Arial Black"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontFamily" Value="Robo"/>
+            <Setter Property="FontSize" Value="14"/>
         </Style>
         <Style TargetType="Button">
             <Setter Property="Background" Value="#fff"/>
@@ -82,24 +87,139 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <Grid>
-        <TextBlock Text="Пример формулы для расчета площади" VerticalAlignment="Top" Margin="5,21,5,0" Height="33"></TextBlock>
-        <!--<TextBox x:Name="FormulaTextBox" 
-                 Text="Тип11 + Тип2 + Тип3" 
-                 IsReadOnly="True" 
-                 Margin="10,59,10,0" 
-                 VerticalAlignment="Top" 
-                 Height="30"/>-->
+    <Border Background="#FFE4E4E4" CornerRadius="10" BorderBrush="Gray" BorderThickness="1">
+        <Grid>
+            <Grid Background="Transparent" VerticalAlignment="Top" Height="40">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="40"/>
+                </Grid.ColumnDefinitions>
 
-        <ListBox x:Name="ApartmentInfoListBox"
-                 Margin="10,59,10,80" />
+                <!-- Название окна -->
+                <TextBlock Text="Информация о плагине" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#000" FontSize="20" FontWeight="Bold" FontFamily="Arial Black"/>
+
+                <!-- Кнопка закрытия -->
+                <Button Content="X" Grid.Column="1" Click="CancelButton_Click" 
+            HorizontalAlignment="Center" VerticalAlignment="Center" 
+            FontWeight="Bold" 
+            Width="30" Height="30" BorderBrush="Transparent" 
+            FontSize="14" Cursor="Hand"/>
+            </Grid>
+            <FlowDocumentScrollViewer Margin="0,45,0,10" >
+                <FlowDocument>
+                    <Paragraph TextAlignment="Center">
+                        <Bold>Общие принципы расчета по нормам Беларуси СН 3.02.01-2019:</Bold>
+                    </Paragraph>
+                    <Paragraph>
+                        Плагин рассчитывает площади многоквартирных жилых домов согласно СН 3.02.01-2019 согласно приложению А.
+                    </Paragraph>
+                    <Paragraph>
+                        <Bold>Жилая площадь квартиры</Bold> — это суммарная площадь пола жилых комнат.
+                    </Paragraph>
+                    <Paragraph>
+                        <Bold>Площадь квартиры</Bold> — это сумма площадей
+                        жилых комнат, подсобных помещений, антресолей и встроенных шкафов 
+                        без учета площади летних помещений, холодных кладовых, тамбуров, а также погребов,
+                        устраиваемых под лоджиями (балконами) первых этажей многоквартирных жилых домов.
+                    </Paragraph>
+                    <Paragraph>
+                        <Bold>Общая площадь квартиры</Bold> — сумма площади квартиры и площадей её летних помещений, 
+                        холодных кладовых, а также погребов, устраиваемых под лоджиями (балконами) первых этажей многоквартирных жилых домов, 
+                        подсчитываемых с коэффициентами (сумма всех типов помещений).
+                    </Paragraph>
+                    <Paragraph TextAlignment="Center">
+
+                        <Bold>Квартира-студия</Bold>
+                    </Paragraph>
+                    <Paragraph>
+                        <Bold>Жилая площадь</Bold> квартиры-студии равна общей площади квартиры с
+                        <Bold>коэффициентом 0.75</Bold> .
+                    </Paragraph>
+                    <Paragraph>
+                        <Bold>Площадь</Bold> квартиры-студии равна
+                        сумме площади помещений санузла, жилой комнаты и кухни без коэффициента.
+
+                    </Paragraph>
+                    <Paragraph>
+                        <Bold>Общая площадь квартиры-студии</Bold> равна
+                        сумме площади квартиры и площади её летних помещений, подсчитываемых
+                        <Bold>с коэффициентами.</Bold>
+                    </Paragraph>
+                    <Paragraph TextAlignment="Center">
+                        <Bold>Коэффициенты для формул</Bold>
+                    </Paragraph>
+                    <List>
+                        <ListItem>
+                            <Paragraph>
+                                <Bold>0.3 - для балконов и террас;</Bold>
+                            </Paragraph>
+                        </ListItem>
+                        <ListItem>
+                            <Paragraph>
+                                <Bold>0.5 - для лоджий и погребов под лоджиями (балконами);</Bold>
+                            </Paragraph>
+                        </ListItem>
+                        <ListItem>
+                            <Paragraph>
+                                <Bold>0.7 - для остекленных лоджий (балконов) и холодных кладовых;</Bold>
+                            </Paragraph>
+                        </ListItem>
+                        <ListItem>
+                            <Paragraph>
+                                <Bold>0.85 - жилой комнаты с кухонным оборудованием.</Bold>
+                            </Paragraph>
+                        </ListItem>
+                        <ListItem>
+                            <Paragraph>
+                                <Bold>1 - для веранд.</Bold>
+                            </Paragraph>
+                        </ListItem>
+                    </List>
+                    <Paragraph TextAlignment="Center">
+                        <Bold>Описания работы программы</Bold>
+                    </Paragraph>
+                    <Paragraph>
+                        Скрипт берет параметр
+                        <Bold>КГ.Номер квартиры</Bold> и подсчитывает все помещения в каждой квартире. 
+    У помещений берет параметры
+                        <Bold>Площадь</Bold> ,
+                        <Bold>КГ.Тип помещения</Bold> и записывает их в словарь. 
+    Все доступные типы помещений на объекте показываются ниже.
+                    </Paragraph>
+                    <Paragraph>
+                        После того, как вы ввели формулы и нажали кнопку
+                        <Bold>"Подсчет площадей"</Bold> , скрипт высчитывает площади и вносит их в следующие параметры:
+                    </Paragraph>
+                    <List>
+                        <ListItem>
+                            <Paragraph>
+                                <Bold>КГ.S.Ж</Bold>
+                            </Paragraph>
+                        </ListItem>
+                        <ListItem>
+                            <Paragraph>
+                                <Bold>КГ.S.ЖП.Площадь квартиры</Bold>
+                            </Paragraph>
+                        </ListItem>
+                        <ListItem>
+                            <Paragraph>
+                                <Bold>КГ.S.ЖПЛк.Общая площадь</Bold>
+                            </Paragraph>
+                        </ListItem>
+                    </List>
+                    <Paragraph TextAlignment="Center">
+                        <Bold>Все типы помещений на данном объекте:</Bold>
+                    </Paragraph>
+
+                    <BlockUIContainer>
+                        <ListBox x:Name="ApartmentInfoListBox" HorizontalAlignment="Center" Height="397" VerticalAlignment="Top" Width="664"/>
+                    </BlockUIContainer>
+                </FlowDocument>
+            </FlowDocumentScrollViewer>
 
 
-        <Button Content="Скопировать" 
-                HorizontalAlignment="Right" 
-                VerticalAlignment="Bottom" 
-                 
-                Width="111" 
-                Click="CopyFormulaButton_Click" Margin="0,0,10,10"/>
-    </Grid>
+
+
+        </Grid>
+    </Border>
 </Window>

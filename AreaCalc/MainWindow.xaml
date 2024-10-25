@@ -150,9 +150,9 @@
             <!-- Группа выбора режима -->
             <GroupBox Header="Режим расчета" VerticalAlignment="Top" Margin="20,60,20,0" Height="80">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <RadioButton x:Name="allApartmentsOnObjectRadioButton" Content="Все квартире на объекте" Margin="10"  />
-                    <RadioButton x:Name="allApartmentsOnViewRadioButton" Content="Все квартиры на виде" Margin="10"/>
-                    <RadioButton x:Name="selectedApartmentRadioButton" Content="Выбранная квартира" Margin="10"  Checked="selectedApartmentRadioButton_Checked" IsChecked="True"/>
+                    <RadioButton x:Name="allApartmentsOnObjectRadioButton" Content="Все квартире на объекте" Margin="10" Checked="AllApartmentsOnObjectRadioButton_Checked"  />
+                    <RadioButton x:Name="allApartmentsOnViewRadioButton" Content="Все квартиры на виде" Margin="10" Checked="AllApartmentsOnViewRadioButton_Checked" />
+                    <RadioButton x:Name="selectedApartmentRadioButton" Content="Выбранная квартира" Margin="10"  Checked="SelectedApartmentRadioButton_Checked"/>
                 </StackPanel>
             </GroupBox>
 
@@ -160,15 +160,15 @@
             <StackPanel VerticalAlignment="Top" Margin="20,160,20,0">
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                     <TextBlock Width="200" Text="Формула жилой площади:" VerticalAlignment="Center"/>
-                    <TextBox x:Name="livingFormulaTextBox" Width="350" ToolTip="Введите формулу для жилой площади"/>
+                    <TextBox x:Name="livingFormulaTextBox" Width="350" Foreground="Gray" Text="Пример: Тип11*0.75" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                    <TextBlock Width="200" Text="Формула обычной площади:" VerticalAlignment="Center"/>
-                    <TextBox x:Name="usualFormulaTextBox" Width="350" ToolTip="Введите формулу для обычной площади"/>
+                    <TextBlock Width="200" Text="Формула площади:"/>
+                    <TextBox x:Name="usualFormulaTextBox" Width="350" Foreground="Gray" Text="Пример: Тип11*0.75 + Тип2" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                     <TextBlock Width="200" Text="Формула общей площади:" VerticalAlignment="Center"/>
-                    <TextBox x:Name="totalFormulaTextBox" Width="350" ToolTip="Введите формулу для общей площади"/>
+                    <TextBox x:Name="totalFormulaTextBox" Width="350" Foreground="Gray" Text="Пример: Тип11*0.75 + Тип2 + Тип3*0.3" GotFocus="TextBox_GotFocus" LostFocus="TextBox_LostFocus"/>
                 </StackPanel>
             </StackPanel>
 
@@ -180,7 +180,7 @@
                 </StackPanel>
             </StackPanel>
 
-                    <TextBlock Margin="20,389,21,72" >
+            <!--<TextBlock Margin="20,389,21,72" >
                     Подсказки по формулам:
                     <LineBreak/>1. Жилая площадь:
                     Тип11*0.75
@@ -188,7 +188,7 @@
                     Тип11*0.75 + Тип2
                     <LineBreak/>3. Общая площадь:
                     Тип11*0.75 + Тип2 + Тип3*0.3
-                    </TextBlock>
+            </TextBlock>-->
 
 
 
@@ -200,6 +200,11 @@
                     HorizontalAlignment="Center" VerticalAlignment="Bottom" 
                     Width="150" Height="40" Margin="0,0,0,20" 
                     Click="CalculateButton_Click"/>
+
+            <Button x:Name="tipWindow" Content="Справка" 
+            HorizontalAlignment="Left" VerticalAlignment="Bottom" 
+            Width="100" Height="40" Margin="20,0,0,20" 
+            Click="ShowHintButton_Click"/>
 
             <!-- Поле для отображения общей площади всех квартир -->
         </Grid>
