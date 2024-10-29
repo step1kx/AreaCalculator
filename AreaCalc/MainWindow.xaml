@@ -180,14 +180,6 @@
                     <ComboBox x:Name="apartmentComboBox" Width="350" Height="30"/>
                 </StackPanel>
             </StackPanel>
-
-            
-
-
-
-
-
-
             <!-- Кнопка для выполнения расчета -->
             <Button x:Name="calculateButton" Content="Подсчет площадей" 
                     HorizontalAlignment="Center" VerticalAlignment="Bottom" 
