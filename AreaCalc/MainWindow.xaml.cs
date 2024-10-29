@@ -1,5 +1,4 @@
 ﻿using Autodesk.Revit.DB;
-using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -9,7 +8,6 @@ using System.Data;
 using Autodesk.Revit.DB.Architecture;
 using System.Windows.Input;
 using System.Diagnostics;
-using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace AreaCalc
@@ -28,7 +26,29 @@ namespace AreaCalc
             _doc = doc;
             apartmentsData = new Dictionary<string, List<Room>>();
             roomCoefficients = new Dictionary<string, double>();
+            LoadSettings();
         }
+
+        private void LoadSettings()
+        {
+            livingFormulaTextBox.Text = Properties.Settings.Default.LivingFormula;
+            usualFormulaTextBox.Text = Properties.Settings.Default.UsualFormula;
+            totalFormulaTextBox.Text = Properties.Settings.Default.TotalFormula;
+        }
+
+        private void SaveSettings()
+        {
+            Properties.Settings.Default.LivingFormula = livingFormulaTextBox.Text;
+            Properties.Settings.Default.UsualFormula = usualFormulaTextBox.Text;
+            Properties.Settings.Default.TotalFormula = totalFormulaTextBox.Text;
+            Properties.Settings.Default.Save();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            SaveSettings();
+        }
+
 
         private void GetApartmentData()
         {
@@ -400,37 +420,6 @@ namespace AreaCalc
         {
             DialogResult = false;
             Close();
-        }
-
-        private void TextBox_GotFocus(object sender, RoutedEventArgs e)
-        {
-            System.Windows.Controls.TextBox textBox = sender as System.Windows.Controls.TextBox;
-            if (textBox != null && textBox.Foreground == Brushes.Gray)
-            {
-                textBox.Text = string.Empty;
-                textBox.Foreground = Brushes.Black;
-            }
-        }
-
-        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            System.Windows.Controls.TextBox textBox = sender as System.Windows.Controls.TextBox;
-            if (textBox != null && string.IsNullOrWhiteSpace(textBox.Text))
-            {
-                textBox.Foreground = Brushes.Gray;
-                if (textBox.Name == "livingFormulaTextBox")
-                {
-                    textBox.Text = "Пример: Тип11*0.75";
-                }
-                else if (textBox.Name == "usualFormulaTextBox")
-                {
-                    textBox.Text = "Пример: Тип11*0.75 + Тип2";
-                }
-                else if (textBox.Name == "totalFormulaTextBox")
-                {
-                    textBox.Text = "Пример: Тип11*0.75 + Тип2 + Тип3*0.3";
-                }
-            }
         }
 
         private void ShowHintButton_Click(object sender, RoutedEventArgs args)
