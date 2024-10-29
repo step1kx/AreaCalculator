@@ -9,14 +9,16 @@ using Autodesk.Revit.DB.Architecture;
 using System.Windows.Input;
 using System.Diagnostics;
 using System.Windows.Media;
+using System.Drawing;
+using System.Windows.Controls;
 
 namespace AreaCalc
 {
     public partial class MainWindow : Window
     {
         private Autodesk.Revit.DB.Document _doc;
-        public static Dictionary<string, List<Room>> apartmentsData;
-        public static Dictionary<string, double> roomCoefficients; // Словарь с коэффициентами
+        public Dictionary<string, List<Room>> apartmentsData { get; private set; }
+        public Dictionary<string, double> roomCoefficients { get; private set; } // Словарь с коэффициентами
         Parameter roomTypeParam;
         
 
@@ -29,18 +31,76 @@ namespace AreaCalc
             LoadSettings();
         }
 
+
         private void LoadSettings()
         {
-            livingFormulaTextBox.Text = Properties.Settings.Default.LivingFormula;
-            usualFormulaTextBox.Text = Properties.Settings.Default.UsualFormula;
-            totalFormulaTextBox.Text = Properties.Settings.Default.TotalFormula;
+            SetPlaceholder(livingFormulaTextBox, Properties.Settings.Default.LivingFormula, "Пример: Тип11*0.85");
+            SetPlaceholder(usualFormulaTextBox, Properties.Settings.Default.UsualFormula, "Пример: Тип11*0.85 + Тип2");
+            SetPlaceholder(totalFormulaTextBox, Properties.Settings.Default.TotalFormula, "Пример: Тип11*0.85 + Тип2 + Тип3*0.3");
+        }
+
+        // Метод для установки подсказки
+        private void SetPlaceholder(TextBox textBox, string setting, string placeholder)
+        {
+            if (string.IsNullOrEmpty(setting))
+            {
+                textBox.Text = placeholder;
+                textBox.Foreground = System.Windows.Media.Brushes.Gray;
+            }
+            else
+            {
+                textBox.Text = setting;
+                textBox.Foreground = System.Windows.Media.Brushes.Black;
+            }
+
+            textBox.GotFocus += RemovePlaceholder;
+            textBox.LostFocus += ApplyPlaceholder;
+        }
+
+        // Убираем подсказку при фокусе
+        private void RemovePlaceholder(object sender, RoutedEventArgs e)
+        {
+            TextBox textBox = (TextBox)sender;
+            if (textBox.Foreground == System.Windows.Media.Brushes.Gray)
+            {
+                textBox.Text = "";
+                textBox.Foreground = System.Windows.Media.Brushes.Black;
+            }
+        }
+
+        // Устанавливаем подсказку, если поле пустое при потере фокуса
+        private void ApplyPlaceholder(object sender, RoutedEventArgs e)
+        {
+            TextBox textBox = (TextBox)sender;
+            if (string.IsNullOrEmpty(textBox.Text))
+            {
+                // Проверяем, какой именно TextBox вызвал событие и задаем соответствующую подсказку
+                if (textBox.Name == "livingFormulaTextBox")
+                {
+                    textBox.Text = "Пример: Тип11*0.85";
+                }
+                else if (textBox.Name == "usualFormulaTextBox")
+                {
+                    textBox.Text = "Пример: Тип11*0.85 + Тип2";
+                }
+                else if (textBox.Name == "totalFormulaTextBox")
+                {
+                    textBox.Text = "Пример: Тип11*0.85 + Тип2 + Тип3*0.3";
+                }
+
+                textBox.Foreground = System.Windows.Media.Brushes.Gray;
+            }
         }
 
         private void SaveSettings()
         {
-            Properties.Settings.Default.LivingFormula = livingFormulaTextBox.Text;
-            Properties.Settings.Default.UsualFormula = usualFormulaTextBox.Text;
-            Properties.Settings.Default.TotalFormula = totalFormulaTextBox.Text;
+            Properties.Settings.Default.LivingFormula = (livingFormulaTextBox.Foreground == System.Windows.Media.Brushes.Gray)
+                ? "" : livingFormulaTextBox.Text;
+            Properties.Settings.Default.UsualFormula = (usualFormulaTextBox.Foreground == System.Windows.Media.Brushes.Gray)
+                ? "" : usualFormulaTextBox.Text;
+            Properties.Settings.Default.TotalFormula = (totalFormulaTextBox.Foreground == System.Windows.Media.Brushes.Gray)
+                ? "" : totalFormulaTextBox.Text;
+
             Properties.Settings.Default.Save();
         }
 

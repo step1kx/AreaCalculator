@@ -121,4 +121,13 @@
   <data name="area" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\area.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="LivingFormula" xml:space="preserve">
+    <value>Пример: Тип11*0.85</value>
+  </data>
+  <data name="TotalFormula" xml:space="preserve">
+    <value>Пример: Тип11*0.85 + Тип2 + Тип3*0.3</value>
+  </data>
+  <data name="UsualFormula" xml:space="preserve">
+    <value>Пример: Тип11*0.85 + Тип2</value>
+  </data>
 </root>

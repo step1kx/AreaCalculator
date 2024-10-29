@@ -6,7 +6,7 @@ namespace AreaCalc
     {
         public static string LivingFormula
         {
-            get => Properties.Settings.Default.LivingFormula;
+            get => Properties.Resources.LivingFormula;
             set
             {
                 Properties.Settings.Default.LivingFormula = value;
