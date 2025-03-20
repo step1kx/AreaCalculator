@@ -181,15 +181,22 @@
                 </StackPanel>
             </StackPanel>
             <!-- Кнопка для выполнения расчета -->
-            <Button x:Name="calculateButton" Content="Подсчет площадей" 
+            <Button x:Name="tipWindow" Content="Справка" 
+                    HorizontalAlignment="Left" VerticalAlignment="Bottom" 
+                    Width="100" Height="40" Margin="20,0,0,20" 
+                    Click="ShowHintButton_Click"/>
+
+            <Button x:Name="" Content="Ввод данных о помещениях" 
                     HorizontalAlignment="Center" VerticalAlignment="Bottom" 
-                    Width="150" Height="40" Margin="0,0,0,20" 
+                    Width="250" Height="40" Margin="0,0,0,20" 
                     Click="CalculateButton_Click"/>
 
-            <Button x:Name="tipWindow" Content="Справка" 
-            HorizontalAlignment="Left" VerticalAlignment="Bottom" 
-            Width="100" Height="40" Margin="20,0,0,20" 
-            Click="ShowHintButton_Click"/>
+            <Button x:Name="calculateButton" Content="Подсчет площадей" 
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                    Width="150" Height="40" Margin="0,0,20,20" 
+                    Click="CalculateButton_Click"/>
+
+            
 
             <!-- Поле для отображения общей площади всех квартир -->
         </Grid>

@@ -488,6 +488,13 @@ namespace AreaCalc
             var tipWindow = new TipWindow(apartmentsData);
             tipWindow.ShowDialog();
         }
+
+        private void ShowRoomDataInputWindow_Click(object sender, RoutedEventArgs args)
+        { 
+            InitializeApartmentsData();
+            //var roomWindow = new RoomDataInputWindow(apartmentsData);
+            //roomWindow.ShowDialog();
+        }
         #endregion
     }
 }
