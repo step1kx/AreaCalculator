@@ -58,9 +58,6 @@
   <ItemGroup>
     <Compile Include="BoolToVisibilityConverter.cs" />
     <Compile Include="Buttons.cs" />
-    <Compile Include="RoomDataInputWindow.xaml.cs">
-      <DependentUpon>RoomDataInputWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="SettingManager.cs" />
     <Compile Include="MainFunction_1.cs" />
     <Compile Include="MainWindow.xaml.cs">
@@ -84,10 +81,6 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="MainWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="RoomDataInputWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -20,6 +20,8 @@ namespace AreaCalc
         public Dictionary<string, List<Room>> apartmentsData { get; private set; }
         public Dictionary<string, double> roomCoefficients { get; private set; } // Словарь с коэффициентами
         Parameter roomTypeParam;
+
+        private int _livingRoomsCount = 0;
         
 
         public MainWindow(Autodesk.Revit.DB.Document doc)
@@ -110,7 +112,7 @@ namespace AreaCalc
         }
 
 
-        private void GetApartmentData()
+        public void GetApartmentData()
         {
             apartmentsData.Clear();
 
@@ -124,6 +126,7 @@ namespace AreaCalc
                 Parameter apartmentNumberParam = room.LookupParameter("КГ.Номер квартиры");
                 Parameter areaParam = room.get_Parameter(BuiltInParameter.ROOM_AREA);
                 Parameter roomFilterParam = room.LookupParameter("КГ.Фильтр");
+                Parameter roomLivingParam = room.LookupParameter("КГ.Жилые комнаты");
                 roomTypeParam = room.LookupParameter("КГ.Тип помещения");
                 string roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString();
                 //Отсеиваем помещения без номеров квартир(например, Лестничная клетка и Лифт)
@@ -136,8 +139,9 @@ namespace AreaCalc
                 string apartmentNumber = apartmentNumberParam.AsString();
                 double area = areaParam.HasValue ? areaParam.AsDouble() : 0;
                 int? roomType = roomTypeParam?.AsInteger();
+                int? roomLiving = roomLivingParam?.AsInteger();
 
-                if (apartmentNumberParam == null || areaParam == null || roomTypeParam == null || roomFilterParam == null)
+                if (apartmentNumberParam == null || areaParam == null || roomTypeParam == null || roomFilterParam == null || roomLivingParam == null)
                 {
                     // Создаем список отсутствующих параметров
                     List<string> missingParams = new List<string>();
@@ -161,6 +165,11 @@ namespace AreaCalc
                     {
                         missingParams.Add(roomFilter);
                     }
+
+                    if (roomLivingParam == null)
+                    {
+                        missingParams.Add("КГ.Жилые комнаты");
+                    }
                     
 
                     // Преобразуем список в строку
@@ -183,7 +192,7 @@ namespace AreaCalc
             }
         }
 
-        private void InitializeApartmentsData()
+        public void InitializeApartmentsData()
         {
             apartmentsData.Clear();
 
@@ -209,7 +218,7 @@ namespace AreaCalc
             }
         }
 
-        private void GetRoomCoefficients()
+        public void GetRoomCoefficients()
         {
             // Очистка предыдущих коэффициентов, чтобы избежать дублирования
             roomCoefficients.Clear();
@@ -279,7 +288,7 @@ namespace AreaCalc
        
        
 
-        private void PopulateApartmentComboBox()
+        public void PopulateApartmentComboBox()
         {
             apartmentComboBox.Items.Clear();
             foreach (var kvp in apartmentsData) 
@@ -489,12 +498,74 @@ namespace AreaCalc
             tipWindow.ShowDialog();
         }
 
-        private void ShowRoomDataInputWindow_Click(object sender, RoutedEventArgs args)
-        { 
-            InitializeApartmentsData();
-            //var roomWindow = new RoomDataInputWindow(apartmentsData);
-            //roomWindow.ShowDialog();
+        
+
+        private void UpdateLivingRoomsParameter(List<Room> rooms, int livingRoomsValue)
+        {
+            foreach (Room room in rooms)
+            {
+                Parameter livingParam = room.LookupParameter("КГ.Жилые комнаты");
+                if (livingParam != null && !livingParam.IsReadOnly)
+                {
+                    livingParam.Set(livingRoomsValue);
+                }
+            }
         }
+
+        private void LivingRoomParameterCalculate_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                using (Transaction tx = new Transaction(_doc, "Установка количества жилых комнат"))
+                {
+                    tx.Start();
+
+                    if (selectedApartmentRadioButton.IsChecked == true)
+                    {
+                        string selectedApartment = apartmentComboBox.SelectedItem?.ToString();
+                        if (string.IsNullOrEmpty(selectedApartment))
+                        {
+                            MessageBox.Show("Пожалуйста, выберите квартиру.");
+                            return;
+                        }
+
+                        string apartmentNumber = selectedApartment.Split(' ')[2];
+                        if (apartmentsData.TryGetValue(apartmentNumber, out List<Room> rooms))
+                        {
+                            UpdateLivingRoomsParameter(rooms, _livingRoomsCount);
+                        }
+                    }
+                    else if (allApartmentsOnViewRadioButton.IsChecked == true)
+                    {
+                        foreach (var apartment in apartmentsData)
+                        {
+                            UpdateLivingRoomsParameter(apartment.Value, _livingRoomsCount);
+                        }
+                    }
+                    else if (allApartmentsOnObjectRadioButton.IsChecked == true)
+                    {
+                        InitializeApartmentsData();
+                        foreach (var apartment in apartmentsData)
+                        {
+                            UpdateLivingRoomsParameter(apartment.Value, _livingRoomsCount);
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Выберите режим расчета!");
+                        return;
+                    }
+
+                    tx.Commit();
+                    MessageBox.Show($"Параметр 'КГ.Жилые комнаты' успешно обновлен. Установлено значение: {_livingRoomsCount}");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при обновлении параметра: {ex.Message}");
+            }
+        }
+
         #endregion
     }
 }
