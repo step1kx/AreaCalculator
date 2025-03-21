@@ -11,6 +11,8 @@ using System.Diagnostics;
 using System.Windows.Media;
 using System.Drawing;
 using System.Windows.Controls;
+using System.Threading.Tasks;
+using Grid = System.Windows.Controls.Grid;
 
 namespace AreaCalc
 {
@@ -21,8 +23,7 @@ namespace AreaCalc
         public Dictionary<string, double> roomCoefficients { get; private set; } // Словарь с коэффициентами
         Parameter roomTypeParam;
 
-        private int _livingRoomsCount = 0;
-        
+       
 
         public MainWindow(Autodesk.Revit.DB.Document doc)
         {
@@ -498,16 +499,36 @@ namespace AreaCalc
             tipWindow.ShowDialog();
         }
 
-        
 
-        private void UpdateLivingRoomsParameter(List<Room> rooms, int livingRoomsValue)
+
+        private int CalculateLivingRoomsCount(List<Room> rooms, HashSet<string> livingRoomTypes)
+        {
+            int livingRoomsCount = 0;
+
+            foreach (Room room in rooms)
+            {
+                Parameter roomTypeParam = room.LookupParameter("КГ.Тип помещения");
+                if (roomTypeParam != null)
+                {
+                    string roomType = "Тип" + roomTypeParam.AsInteger().ToString();
+                    if (livingRoomTypes.Contains(roomType))
+                    {
+                        livingRoomsCount++;
+                    }
+                }
+            }
+
+            return livingRoomsCount;
+        }
+
+        private void UpdateLivingRoomsParameter(List<Room> rooms, int count)
         {
             foreach (Room room in rooms)
             {
                 Parameter livingParam = room.LookupParameter("КГ.Жилые комнаты");
                 if (livingParam != null && !livingParam.IsReadOnly)
                 {
-                    livingParam.Set(livingRoomsValue);
+                    livingParam.Set(count);
                 }
             }
         }
@@ -516,9 +537,30 @@ namespace AreaCalc
         {
             try
             {
-                using (Transaction tx = new Transaction(_doc, "Установка количества жилых комнат"))
+                string input = livingRoomsTextBox.Text;
+                if (string.IsNullOrEmpty(input))
+                {
+                    MessageBox.Show("Пожалуйста, укажите типы жилых помещений.");
+                    return;
+                }
+
+                HashSet<string> livingRoomTypes = new HashSet<string>(
+                    input.Split(',')
+                         .Select(t => t.Trim())
+                         .Where(t => !string.IsNullOrEmpty(t))
+                         .Select(t => t.StartsWith("Тип") ? t : $"Тип{t}")
+                );
+
+                if (livingRoomTypes.Count == 0)
+                {
+                    MessageBox.Show("Не удалось распознать типы помещений. Используйте формат: Тип1, Тип3");
+                    return;
+                }
+
+                using (Transaction tx = new Transaction(_doc, "Обновление количества жилых комнат"))
                 {
                     tx.Start();
+                    int processedApartments = 0;
 
                     if (selectedApartmentRadioButton.IsChecked == true)
                     {
@@ -532,39 +574,178 @@ namespace AreaCalc
                         string apartmentNumber = selectedApartment.Split(' ')[2];
                         if (apartmentsData.TryGetValue(apartmentNumber, out List<Room> rooms))
                         {
-                            UpdateLivingRoomsParameter(rooms, _livingRoomsCount);
+                            GetApartmentData(); 
+
+                            if (apartmentsData.TryGetValue(apartmentNumber, out rooms))
+                            {
+                                int livingCount = CalculateLivingRoomsCount(rooms, livingRoomTypes);
+                                UpdateLivingRoomsParameter(rooms, livingCount);
+                                processedApartments++;
+
+                                Parameter checkParam = rooms.First().LookupParameter("КГ.Жилые комнаты");
+                                int actualValue = checkParam?.AsInteger() ?? -1;
+
+                                MessageBox.Show($"Квартира номер {apartmentNumber} обработана!\n" +
+                                              $"Жилые типы: {string.Join(", ", livingRoomTypes)}\n" +
+                                              $"Найдено жилых комнат: {livingCount}\n" +
+                                              $"Установленное значение: {actualValue}");
+                            }
+                            else
+                            {
+                                MessageBox.Show($"Не удалось обновить данные для квартиры {apartmentNumber}");
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Квартира {apartmentNumber} не найдена в данных");
                         }
                     }
                     else if (allApartmentsOnViewRadioButton.IsChecked == true)
                     {
+                        GetApartmentData();
                         foreach (var apartment in apartmentsData)
                         {
-                            UpdateLivingRoomsParameter(apartment.Value, _livingRoomsCount);
+                            int livingCount = CalculateLivingRoomsCount(apartment.Value, livingRoomTypes);
+                            UpdateLivingRoomsParameter(apartment.Value, livingCount);
+                            processedApartments++;
                         }
+                        MessageBox.Show($"Обновление завершено. \nОбработано квартир: {processedApartments}. " +
+                                  $"\nЖилые типы: {string.Join(", ", livingRoomTypes)}");
                     }
                     else if (allApartmentsOnObjectRadioButton.IsChecked == true)
                     {
                         InitializeApartmentsData();
                         foreach (var apartment in apartmentsData)
                         {
-                            UpdateLivingRoomsParameter(apartment.Value, _livingRoomsCount);
+                            int livingCount = CalculateLivingRoomsCount(apartment.Value, livingRoomTypes);
+                            UpdateLivingRoomsParameter(apartment.Value, livingCount);
+                            processedApartments++;
                         }
-                    }
-                    else
-                    {
-                        MessageBox.Show("Выберите режим расчета!");
-                        return;
+                        MessageBox.Show($"Обновление завершено. Обработано квартир: {processedApartments}. " +
+                                  $"Жилые типы: {string.Join(", ", livingRoomTypes)}");
                     }
 
                     tx.Commit();
-                    MessageBox.Show($"Параметр 'КГ.Жилые комнаты' успешно обновлен. Установлено значение: {_livingRoomsCount}");
+
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при обновлении параметра: {ex.Message}");
+                MessageBox.Show($"Ошибка при обновлении: {ex.Message}");
             }
         }
+
+        //private async void LivingRoomParameterCalculate_Click(object sender, RoutedEventArgs e)
+        //{
+        //    try
+        //    {
+        //        // Парсим типы помещений из TextBox
+        //        string input = livingRoomsTextBox.Text;
+        //        if (string.IsNullOrEmpty(input))
+        //        {
+        //            MessageBox.Show("Пожалуйста, укажите типы жилых помещений.");
+        //            return;
+        //        }
+
+        //        HashSet<string> livingRoomTypes = new HashSet<string>(
+        //            input.Split(',')
+        //                 .Select(t => t.Trim())
+        //                 .Where(t => !string.IsNullOrEmpty(t))
+        //                 .Select(t => t.StartsWith("Тип") ? t : $"Тип{t}")
+        //        );
+
+        //        if (livingRoomTypes.Count == 0)
+        //        {
+        //            MessageBox.Show("Не удалось распознать типы помещений. Используйте формат: Тип1, Тип3");
+        //            return;
+        //        }
+
+        //        // Показываем экран загрузки
+        //        LoadingOverlay.Visibility = System.Windows.Visibility.Visible;
+        //        IsEnabled = false; // Блокируем интерфейс
+
+        //        // Выполняем обработку асинхронно
+        //        await Task.Run(() =>
+        //        {
+        //            using (Transaction tx = new Transaction(_doc, "Обновление количества жилых комнат"))
+        //            {
+        //                tx.Start();
+        //                int processedApartments = 0;
+
+        //                if (selectedApartmentRadioButton.IsChecked == true)
+        //                {
+        //                    string selectedApartment = (string)Dispatcher.Invoke(() => apartmentComboBox.SelectedItem?.ToString());
+        //                    if (string.IsNullOrEmpty(selectedApartment))
+        //                    {
+        //                        Dispatcher.Invoke(() => MessageBox.Show("Пожалуйста, выберите квартиру."));
+        //                        return;
+        //                    }
+
+        //                    string apartmentNumber = selectedApartment.Split(' ')[2];
+        //                    if (apartmentsData.TryGetValue(apartmentNumber, out List<Room> rooms))
+        //                    {
+        //                        GetApartmentData();
+        //                        if (apartmentsData.TryGetValue(apartmentNumber, out rooms))
+        //                        {
+        //                            int livingCount = CalculateLivingRoomsCount(rooms, livingRoomTypes);
+        //                            UpdateLivingRoomsParameter(rooms, livingCount);
+        //                            processedApartments++;
+        //                            Dispatcher.Invoke(() =>
+        //                            {
+        //                                MessageBox.Show($"Квартира номер {apartmentNumber} обработана!\n" +
+        //                                              $"Жилые типы: {string.Join(", ", livingRoomTypes)}\n" +
+        //                                              $"Найдено жилых комнат: {livingCount}");
+        //                            });
+        //                        }
+        //                    }
+        //                }
+        //                else if (allApartmentsOnViewRadioButton.IsChecked == true)
+        //                {
+        //                    GetApartmentData();
+        //                    foreach (var apartment in apartmentsData)
+        //                    {
+        //                        int livingCount = CalculateLivingRoomsCount(apartment.Value, livingRoomTypes);
+        //                        UpdateLivingRoomsParameter(apartment.Value, livingCount);
+        //                        processedApartments++;
+        //                    }
+        //                    Dispatcher.Invoke(() =>
+        //                    {
+        //                        MessageBox.Show($"Обновление завершено. Обработано квартир: {processedApartments}. " +
+        //                                      $"Жилые типы: {string.Join(", ", livingRoomTypes)}");
+        //                    });
+        //                }
+        //                else if (allApartmentsOnObjectRadioButton.IsChecked == true)
+        //                {
+        //                    InitializeApartmentsData();
+        //                    foreach (var apartment in apartmentsData)
+        //                    {
+        //                        int livingCount = CalculateLivingRoomsCount(apartment.Value, livingRoomTypes);
+        //                        UpdateLivingRoomsParameter(apartment.Value, livingCount);
+        //                        processedApartments++;
+        //                    }
+        //                    Dispatcher.Invoke(() =>
+        //                    {
+        //                        MessageBox.Show($"Обновление завершено. Обработано квартир: {processedApartments}. " +
+        //                                      $"Жилые типы: {string.Join(", ", livingRoomTypes)}");
+        //                    });
+        //                }
+
+        //                tx.Commit();
+        //            }
+        //        });
+
+        //        // Скрываем экран загрузки после завершения
+        //        LoadingOverlay.Visibility = System.Windows.Visibility.Collapsed;
+        //        IsEnabled = true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // В случае ошибки тоже скрываем загрузку
+        //        LoadingOverlay.Visibility = System.Windows.Visibility.Collapsed;
+        //        IsEnabled = true;
+        //        MessageBox.Show($"Ошибка при обработке: {ex.Message}");
+        //    }
+        //}
 
         #endregion
     }
