@@ -113,7 +113,7 @@ namespace AreaCalc
         }
 
 
-        public void GetApartmentData()
+        public static void GetApartmentData(Dictionary<string, List<Room>> apartmentsData, Document _doc, Parameter roomTypeParam)
         {
             apartmentsData.Clear();
 
@@ -269,14 +269,14 @@ namespace AreaCalc
         #region// Обработчики для радиокнопок
         private void SelectedApartmentRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            GetApartmentData();
+            GetApartmentData(apartmentsData, _doc, roomTypeParam);
             GetRoomCoefficients();
             PopulateApartmentComboBox();
         }
 
         private void AllApartmentsOnViewRadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            GetApartmentData();
+            GetApartmentData(apartmentsData, _doc, roomTypeParam);
             GetRoomCoefficients();
         }
 
@@ -347,6 +347,11 @@ namespace AreaCalc
                 else if (allApartmentsOnObjectRadioButton.IsChecked == true)
                 {
                     ProcessAllApartmentsInObject(livingFormula, usualFormula, totalFormula, ref totalViewArea);
+                }
+                else
+                {
+                        MessageBox.Show("Нужен выбор режима расчета!");
+                        return;
                 }
 
                 
@@ -574,7 +579,7 @@ namespace AreaCalc
                         string apartmentNumber = selectedApartment.Split(' ')[2];
                         if (apartmentsData.TryGetValue(apartmentNumber, out List<Room> rooms))
                         {
-                            GetApartmentData(); 
+                            GetApartmentData(apartmentsData, _doc, roomTypeParam); 
 
                             if (apartmentsData.TryGetValue(apartmentNumber, out rooms))
                             {
@@ -602,7 +607,7 @@ namespace AreaCalc
                     }
                     else if (allApartmentsOnViewRadioButton.IsChecked == true)
                     {
-                        GetApartmentData();
+                        GetApartmentData(apartmentsData, _doc, roomTypeParam);
                         foreach (var apartment in apartmentsData)
                         {
                             int livingCount = CalculateLivingRoomsCount(apartment.Value, livingRoomTypes);
@@ -623,6 +628,11 @@ namespace AreaCalc
                         }
                         MessageBox.Show($"Обновление завершено. Обработано квартир: {processedApartments}. " +
                                   $"Жилые типы: {string.Join(", ", livingRoomTypes)}");
+                    }
+                    else
+                    {
+                        MessageBox.Show("Нужен выбор режима расчета!");
+                        return;
                     }
 
                     tx.Commit();

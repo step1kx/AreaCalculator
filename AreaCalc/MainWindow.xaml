@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:local="clr-namespace:AreaCalc"
-        Height="500" Width="1200" Title="Квартирография" WindowStyle="None" 
+        Height="500" Width="900" Title="Квартирография" WindowStyle="None" 
         AllowsTransparency="True" 
         WindowStartupLocation="CenterScreen" 
         Background="Transparent"
@@ -16,8 +16,8 @@
         <Style TargetType="Button">
             <Setter Property="Background" Value="#fff"/>
             <Setter Property="Foreground" Value="#000"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontFamily" Value="Arial Black"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontFamily" Value = "Open Sans"/>
             <Setter Property="Margin" Value="5"/>
             <Setter Property="BorderBrush" Value="Gray"/>
             <Setter Property="BorderThickness" Value="2"/>
@@ -61,18 +61,7 @@
                                 </BeginStoryboard>
                             </EventTrigger>
 
-                            <EventTrigger RoutedEvent="Button.MouseLeave">
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <ColorAnimation Storyboard.TargetProperty="(Button.Background).(SolidColorBrush.Color)"
-                                                        From="#000" To="#fff" Duration="0:0:0.3"/>
-                                        <DoubleAnimation Storyboard.TargetProperty="(Button.Effect).(DropShadowEffect.BlurRadius)"
-                                                        From="20" To="10" Duration="0:0:0.2"/>
-                                        <DoubleAnimation Storyboard.TargetProperty="(Button.Effect).(DropShadowEffect.Opacity)"
-                                                        From="0.8" To="0.5" Duration="0:0:0.3"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </EventTrigger>
+                           
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -166,47 +155,92 @@
                 </StackPanel>
             </StackPanel>
 
-            <StackPanel VerticalAlignment="Top" Margin="20,194,599,0" Height="182">
-                <TextBlock Text="Расчет площади" HorizontalAlignment="Center"></TextBlock>
-                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                    <TextBlock Width="200" Text="Формула жилой площади:" VerticalAlignment="Center"/>
-                    <TextBox x:Name="livingFormulaTextBox" Width="350" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                    <TextBlock Width="200" Text="Формула площади:"/>
-                    <TextBox x:Name="usualFormulaTextBox" Width="350"  />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                    <TextBlock Width="200" Text="Формула общей площади:" VerticalAlignment="Center"/>
-                    <TextBox x:Name="totalFormulaTextBox" Width="350" />
-                </StackPanel>
-            </StackPanel>
+            <TabControl Margin="0,205,0,0" Background="#FFE4E4E4">
+                <!-- Первая вкладка - Расчет площади -->
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="10" Height="10" Fill="White"
+                                     Stroke="Black" />
+                            <TextBlock Margin="3">Расчет площади</TextBlock>
+                        </StackPanel>
+                    </TabItem.Header>
+                    <TabItem.Content>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="550" Height="257">
+                            <TextBlock Text="Расчет площади" HorizontalAlignment="Center" Margin="0,15,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <TextBlock Width="200" Text="Формула жилой площади:" VerticalAlignment="Center"/>
+                                <TextBox x:Name="livingFormulaTextBox" Width="300" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <TextBlock Width="200" Text="Формула площади:" VerticalAlignment="Center"/>
+                                <TextBox x:Name="usualFormulaTextBox" Width="300" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                <TextBlock Width="200" Text="Формула общей площади:" VerticalAlignment="Center"/>
+                                <TextBox x:Name="totalFormulaTextBox" Width="300" />
+                            </StackPanel>
+                            <Button x:Name="calculateButton" Content="Подсчет площадей" 
+                    Width="200" Height="40" 
+                    Click="CalculateButton_Click"
+                    Margin="0,20,0,0"/>
+                        </StackPanel>
+                    </TabItem.Content>
+                </TabItem>
 
-            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,194,20,0" Height="182" Width="574">
-                <TextBlock Text="Отметка жилых помещений" HorizontalAlignment="Center"/>
-                <StackPanel Orientation="Vertical" VerticalAlignment="Top" Margin="0,10,0,0">
-                    <TextBlock Width="532" Text="Укажите тип/ы помещения в объекте, который/ые будет считаться жилым/и"/>
-                    <TextBlock Width="366" Text="Значения записывать через запятую (Тип1, Тип3)"/>
-                    <TextBox Width="325" x:Name="livingRoomsTextBox"></TextBox>
-                </StackPanel>
-            </StackPanel>
+                <!-- Вторая вкладка - Отметка жилых помещений -->
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="10" Height="10" Fill="White" 
+                                     Stroke="Black" />
+                            <TextBlock Margin="3">Жилые помещения</TextBlock>
+                        </StackPanel>
+                    </TabItem.Header>
+                    <TabItem.Content>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="550">
+                            <TextBlock Text="Отметка жилых помещений" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                            <StackPanel Orientation="Vertical" VerticalAlignment="Top" Margin="0,10,0,0">
+                                <TextBlock Width="532" Text="Укажите тип/ы помещения в объекте, который/ые будет считаться жилым/и"/>
+                                <TextBlock Width="366" Text="Значения записывать через запятую (Тип1, Тип3)" Margin="0,5,0,10"/>
+                                <TextBox Width="325" x:Name="livingRoomsTextBox" Margin="0,0,0,10"/>
+
+                            </StackPanel>
+                            <Button x:Name="roomsDataWindow" Content="Ввод данных о помещениях" 
+                    Width="200" Height="40" 
+                    Click="LivingRoomParameterCalculate_Click"/>
+                        </StackPanel>
+                    </TabItem.Content>
+                </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="10" Height="10" Fill="White" 
+                                     Stroke="Black" />
+                            <TextBlock Margin="3">Схема расположения квартир</TextBlock>
+                        </StackPanel>
+                    </TabItem.Header>
+                    <TabItem.Content>
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="550">
+                            <TextBlock Text="Отметка жилых помещений" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                            <StackPanel Orientation="Vertical" VerticalAlignment="Top" Margin="0,10,0,0">
+                            </StackPanel>
+                            <Button x:Name="gfhfgh" Content="Ввод данных о помещениях" 
+                                Width="200" Height="40" 
+                                Click="LivingRoomParameterCalculate_Click"/>
+                        </StackPanel>
+                    </TabItem.Content>
+                </TabItem>
+            </TabControl>
 
             <!-- ComboBox для выбора квартиры (видимый только в режиме "Выбранная квартира") -->
 
             <!-- Кнопка для выполнения расчета -->
             <Button x:Name="tipWindow" Content="Справка" 
-                    HorizontalAlignment="Left" VerticalAlignment="Top" 
-                    Width="100" Height="40" Margin="1088,449,0,0" 
-                    Click="ShowHintButton_Click"/>
+                    Width="100" Height="40" HorizontalAlignment = "Right" VerticalAlignment="Center"
+                    Click="ShowHintButton_Click" Margin="0,0,15,120"/>
 
-            <Button x:Name="roomsDataWindow" Content="Ввод данных о помещениях" 
-                    Width="200" Height="40" 
-                    Click="LivingRoomParameterCalculate_Click" Margin="791,376,207,83"/>
 
-            <Button x:Name="calculateButton" Content="Подсчет площадей" 
-                    HorizontalAlignment="Right" VerticalAlignment="Top" 
-                    Width="200" Height="40" Margin="0,376,788,0" 
-                    Click="CalculateButton_Click"/>
             <!-- Поле для отображения общей площади всех квартир -->
             <!--<Grid x:Name="LoadingOverlay" Background="#80000000" Visibility="Collapsed">
                 <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
