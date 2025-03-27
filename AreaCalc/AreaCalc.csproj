@@ -57,10 +57,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoolToVisibilityConverter.cs" />
-    <Compile Include="Buttons.cs" />
-    <Compile Include="SettingManager.cs" />
-    <Compile Include="MainFunction_1.cs" />
-    <Compile Include="MainWindow.xaml.cs">
+    <Compile Include="Interfaces\IApartmentLayout.cs" />
+    <Compile Include="Models\ApartmentLayout.cs" />
+    <Compile Include="RevitAPI\Buttons.cs" />
+    <Compile Include="Interfaces\IApartmentDataProvider.cs" />
+    <Compile Include="Interfaces\IAreaCalculator.cs" />
+    <Compile Include="Interfaces\IParameterUpdater.cs" />
+    <Compile Include="Interfaces\ISettingManager.cs" />
+    <Compile Include="Models\LivingRoomManipulations.cs" />
+    <Compile Include="Models\ApartmentDataProvider.cs" />
+    <Compile Include="Models\AreaCalculator.cs" />
+    <Compile Include="Models\ParameterUpdater.cs" />
+    <Compile Include="Models\SettingManager.cs" />
+    <Compile Include="RevitAPI\MainFunction_1.cs" />
+    <Compile Include="WPF\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -74,17 +84,17 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="Settings.cs" />
-    <Compile Include="TipWindow.xaml.cs">
+    <Compile Include="WPF\TipWindow.xaml.cs">
       <DependentUpon>TipWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ValidCheckers.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="MainWindow.xaml">
+    <Page Include="WPF\MainWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="TipWindow.xaml">
+    <Page Include="WPF\TipWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -103,5 +113,6 @@
     </None>
     <None Include="Resources\area.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
