@@ -29,6 +29,7 @@ namespace AreaCalc
 
         private Dictionary<string, List<Room>> _apartmentsData;
         private Dictionary<string, double> _roomCoefficients;
+        private readonly IApartmentLayout _apartmentLayout;
 
         public MainWindow(Document doc)
         {
@@ -42,6 +43,7 @@ namespace AreaCalc
             _parameterUpdater = new ParameterUpdater();
             _settingsManager = new SettingsManager();
             _livingRoomManipulations = new LivingRoomManipulations(_doc, _apartmentsData, _dataProvider);
+            _apartmentLayout = new ApartmentLayout();
 
             _settingsManager.LoadSettings(livingFormulaTextBox, usualFormulaTextBox, totalFormulaTextBox);
         }
@@ -54,7 +56,7 @@ namespace AreaCalc
         private void SelectedApartmentRadioButton_Checked(object sender, RoutedEventArgs e)
         {
             var (apartmentsData, errors) = _dataProvider.GetApartmentData(_doc, true);
-            _apartmentsData.Clear();
+            //_apartmentsData.Clear();
             foreach (var kvp in apartmentsData)
             {
                 _apartmentsData[kvp.Key] = kvp.Value;
@@ -238,6 +240,31 @@ namespace AreaCalc
             else
             {
                 MessageBox.Show("Нужен выбор режима расчета!");
+            }
+        }
+
+        private void CreateLayoutButton_Click(object sender, RoutedEventArgs e)
+        {
+
+            string mode = selectedApartmentRadioButton.IsChecked == true ? "SelectedApartment" :
+                          allApartmentsOnViewRadioButton.IsChecked == true ? "AllApartmentsOnView" :
+                          allApartmentsOnObjectRadioButton.IsChecked == true ? "AllApartmentsOnObject" : null;
+
+            try
+            {
+                if (!_apartmentsData.Any())
+                {
+                    MessageBox.Show("Данные о квартирах отсутствуют. Пожалуйста, выберите режим и загрузите данные.");
+                    return;
+                }
+
+                _apartmentLayout.CreateApartmentLayout(_doc, _apartmentsData);
+                MessageBox.Show("Чертежный вид с квартирографией успешно создан!" 
+                                + $"\nКвартир обработано: {_apartmentsData.Count}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при создании чертежного вида: {ex.Message}");
             }
         }
     }

@@ -62,6 +62,11 @@ namespace AreaCalc.Models
                     continue;
                 }
 
+                if (string.IsNullOrWhiteSpace(apartmentNumber) || apartmentNumber == "0")
+                {
+                    continue;
+                }
+
                 if (!string.IsNullOrWhiteSpace(apartmentNumber))
                 {
                     if (!apartmentsData.ContainsKey(apartmentNumber))
