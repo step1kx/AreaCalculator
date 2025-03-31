@@ -58,7 +58,11 @@
   <ItemGroup>
     <Compile Include="BoolToVisibilityConverter.cs" />
     <Compile Include="Interfaces\IApartmentLayout.cs" />
+    <Compile Include="Interfaces\IApartmentUpdater.cs" />
+    <Compile Include="Interfaces\IDraftingServices.cs" />
     <Compile Include="Models\ApartmentLayout.cs" />
+    <Compile Include="Models\ApartmentUpdater.cs" />
+    <Compile Include="Models\DraftingServices.cs" />
     <Compile Include="RevitAPI\Buttons.cs" />
     <Compile Include="Interfaces\IApartmentDataProvider.cs" />
     <Compile Include="Interfaces\IAreaCalculator.cs" />

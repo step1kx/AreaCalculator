@@ -8,9 +8,8 @@ using System.Threading.Tasks;
 
 namespace AreaCalc.Interfaces
 {
-    public interface IApartmentLayout
+   public interface IApartmentUpdater
     {
-        void CreateApartmentLayout(Document doc, Dictionary<string, List<Room>> apartmentsData);
-
+        void UpdateApartmentLayout(Document doc, Dictionary<string, List<Room>> apartmentsData);
     }
 }

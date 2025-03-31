@@ -11,11 +11,21 @@ namespace AreaCalc.Models
 {
     public class ApartmentLayout : IApartmentLayout
     {
+        private readonly IDraftingServices _draftingService;
+
         private const string FamilyName = "Квартирография - СРК - Ячейка";
         private const int MaxApartmentsPerRow = 5; // количество ячеек в ряду
         private const double CellWidth = 3.0; // ширина ячейки
         private const double CellHeight = 2.0; // высота ячейки
         private const double Spacing = 5; // расстояние между ячейками
+
+
+        public ApartmentLayout(DraftingServices draftingServices)
+        {
+            _draftingService = draftingServices ?? throw new ArgumentNullException(nameof(draftingServices));
+        }
+
+        
 
         public void CreateApartmentLayout(Document doc, Dictionary<string, List<Room>> apartmentsData)
         {
@@ -28,9 +38,9 @@ namespace AreaCalc.Models
             {
                 tx.Start();
 
-                ViewDrafting draftingView = CreateDraftingView(doc);
+                ViewDrafting draftingView = _draftingService.CreateDraftingView(doc);
 
-                FamilySymbol familySymbol = FindFamilySymbol(doc, FamilyName);
+                FamilySymbol familySymbol = _draftingService.FindFamilySymbol(doc, FamilyName);
                 if (familySymbol == null)
                 {
                     throw new Exception($"Семейство '{FamilyName}' не найдено в проекте.");
@@ -48,32 +58,6 @@ namespace AreaCalc.Models
 
                 tx.Commit();
             }
-        }
-
-        private ViewDrafting CreateDraftingView(Document doc)
-        {
-            ViewFamilyType draftingViewType = new FilteredElementCollector(doc)
-                .OfClass(typeof(ViewFamilyType))
-                .Cast<ViewFamilyType>()
-                .FirstOrDefault(vft => vft.ViewFamily == ViewFamily.Drafting);
-
-            if (draftingViewType == null)
-            {
-                throw new Exception("Не найден тип чертежного вида в проекте.");
-            }
-
-            ViewDrafting draftingView = ViewDrafting.Create(doc, draftingViewType.Id);
-            draftingView.Name = "Квартирография - Схема расположения квартир";
-
-            return draftingView;
-        }
-
-        private FamilySymbol FindFamilySymbol(Document doc, string familyName)
-        {
-            return new FilteredElementCollector(doc)
-                .OfClass(typeof(FamilySymbol))
-                .Cast<FamilySymbol>()
-                .FirstOrDefault(fs => fs.FamilyName == familyName);
         }
 
         private List<FamilyInstance> PlaceFamilyInstances(Document doc, ViewDrafting draftingView, FamilySymbol familySymbol, Dictionary<string, List<Room>> apartmentsData)
@@ -98,7 +82,7 @@ namespace AreaCalc.Models
                 double y = row * (CellHeight + Spacing);
                 XYZ location = new XYZ(x, y, 0);
 
-                FamilyInstance instance = doc.Create.NewFamilyInstance(location, familySymbol, draftingView);
+                FamilyInstance instance = _draftingService.PlaceFamilyInstance(doc, draftingView, familySymbol, location);
                 familyInstances.Add(instance);
 
                 index++;
@@ -106,8 +90,6 @@ namespace AreaCalc.Models
 
             return familyInstances;
         }
-
-
 
         private void FillFamilyInstanceParameters(Document doc, List<FamilyInstance> familyInstances, Dictionary<string, List<Room>> apartmentsData)
         {
@@ -118,24 +100,11 @@ namespace AreaCalc.Models
                 List<Room> rooms = apartment.Value;
                 FamilyInstance instance = familyInstances[index];
 
-                Parameter numberParam = instance.LookupParameter("КГ.СРК.Номер квартиры"); 
+                Parameter numberParam = instance.LookupParameter("КГ.СРК.Номер квартиры");
                 if (numberParam != null && !numberParam.IsReadOnly)
                 {
                     numberParam.Set(apartmentNumber);
                 }
-                else
-                {
-                    if (numberParam == null)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Параметр 'КГ.СРК.Номер квартиры' не найден в семействе для квартиры {apartmentNumber}");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Параметр 'КГ.СРК.Номер квартиры' только для чтения в семействе для квартиры {apartmentNumber}");
-                    }
-                }
-
-
 
                 Room firstRoom = rooms.FirstOrDefault();
                 if (firstRoom != null)
@@ -150,40 +119,30 @@ namespace AreaCalc.Models
                             familyTypeParam.Set(apartmentType);
                         }
                     }
-                }
 
-
-
-                double totalArea = 0;
-                if (firstRoom != null)
-                {
+                    double totalArea = 0;
                     Parameter totalAreaParam = firstRoom.LookupParameter("КГ.S.ЖПЛк.Общая площадь");
                     if (totalAreaParam != null && totalAreaParam.HasValue)
                     {
                         totalArea = totalAreaParam.AsDouble();
                     }
-                }
-                Parameter familyTotalAreaParam = instance.LookupParameter("КГ.СРК.S.ЖПЛк.Общая площадь");
-                if (familyTotalAreaParam != null && !familyTotalAreaParam.IsReadOnly)
-                {
-                    familyTotalAreaParam.Set(totalArea);
-                }
+                    Parameter familyTotalAreaParam = instance.LookupParameter("КГ.СРК.S.ЖПЛк.Общая площадь");
+                    if (familyTotalAreaParam != null && !familyTotalAreaParam.IsReadOnly)
+                    {
+                        familyTotalAreaParam.Set(totalArea);
+                    }
 
-
-
-                double livingArea = 0;
-                if (firstRoom != null)
-                {
+                    double livingArea = 0;
                     Parameter livingAreaParam = firstRoom.LookupParameter("КГ.S.Ж");
                     if (livingAreaParam != null && livingAreaParam.HasValue)
                     {
                         livingArea = livingAreaParam.AsDouble();
                     }
-                }
-                Parameter familyLivingAreaParam = instance.LookupParameter("КГ.СРК.S.Ж");
-                if (familyLivingAreaParam != null && !familyLivingAreaParam.IsReadOnly)
-                {
-                    familyLivingAreaParam.Set(livingArea);
+                    Parameter familyLivingAreaParam = instance.LookupParameter("КГ.СРК.S.Ж");
+                    if (familyLivingAreaParam != null && !familyLivingAreaParam.IsReadOnly)
+                    {
+                        familyLivingAreaParam.Set(livingArea);
+                    }
                 }
 
                 index++;

@@ -257,11 +257,15 @@
                     <TabItem.Content>
                         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="550">
                             <TextBlock Text="Создание чертежа со схематичным расположением марок" HorizontalAlignment="Center" Margin="0,0,0,10"/>
-                            <StackPanel Orientation="Vertical" VerticalAlignment="Top" Margin="0,10,0,0">
+                            <StackPanel Orientation="Horizontal" Width="225">
+                                <Button x:Name="roomsSchemaInBuilding" Content="Создать" 
+                                    Width="100" Height="40" 
+                                    Click="CreateLayoutButton_Click"/>
+                                <Button x:Name="updateRoomsSchema" Content="Обновить"
+                                    Width="100" Height="40"
+                                    Click="UpdateLayoutButton_Click"
+                                       />
                             </StackPanel>
-                            <Button x:Name="roomsSchemaInBuilding" Content="Создание" 
-                                Width="100" Height="40" 
-                                Click="CreateLayoutButton_Click"/>
                         </StackPanel>
                     </TabItem.Content>
                 </TabItem>

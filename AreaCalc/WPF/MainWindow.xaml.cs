@@ -30,6 +30,7 @@ namespace AreaCalc
         private Dictionary<string, List<Room>> _apartmentsData;
         private Dictionary<string, double> _roomCoefficients;
         private readonly IApartmentLayout _apartmentLayout;
+        private readonly IApartmentUpdater _apartmentUpdater;
 
         public MainWindow(Document doc)
         {
@@ -43,7 +44,8 @@ namespace AreaCalc
             _parameterUpdater = new ParameterUpdater();
             _settingsManager = new SettingsManager();
             _livingRoomManipulations = new LivingRoomManipulations(_doc, _apartmentsData, _dataProvider);
-            _apartmentLayout = new ApartmentLayout();
+            _apartmentLayout = new ApartmentLayout(new DraftingServices());
+            _apartmentUpdater = new ApartmentUpdater(new DraftingServices());
 
             _settingsManager.LoadSettings(livingFormulaTextBox, usualFormulaTextBox, totalFormulaTextBox);
         }
@@ -246,10 +248,6 @@ namespace AreaCalc
         private void CreateLayoutButton_Click(object sender, RoutedEventArgs e)
         {
 
-            string mode = selectedApartmentRadioButton.IsChecked == true ? "SelectedApartment" :
-                          allApartmentsOnViewRadioButton.IsChecked == true ? "AllApartmentsOnView" :
-                          allApartmentsOnObjectRadioButton.IsChecked == true ? "AllApartmentsOnObject" : null;
-
             try
             {
                 if (!_apartmentsData.Any())
@@ -258,13 +256,52 @@ namespace AreaCalc
                     return;
                 }
 
+                if(selectedApartmentRadioButton.IsChecked == true)
+                {
+                    MessageBox.Show("Выбрать можно только из:" +
+                        "\n- Квартиры на виде" +
+                        "\n- Квартиры на объекте");
+                    return;
+                }
+
                 _apartmentLayout.CreateApartmentLayout(_doc, _apartmentsData);
                 MessageBox.Show("Чертежный вид с квартирографией успешно создан!" 
-                                + $"\nКвартир обработано: {_apartmentsData.Count}");
+                                + $"\nКвартир обработано: {_apartmentsData.Count}", "Успешное создание чертежного вида");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при создании чертежного вида: {ex.Message}");
+                MessageBox.Show($"Ошибка при создании чертежного вида (имя должно быть уникальным): {ex.Message}");
+            }
+        }
+
+        private void UpdateLayoutButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!_apartmentsData.Any())
+                {
+                    MessageBox.Show("Данные о квартирах отсутствуют. Пожалуйста, выберите режим и загрузите данные.");
+                    return;
+                }
+
+                // Обновляем данные о квартирах (например, можно перезагрузить их)
+                var (newApartmentsData, errors) = _dataProvider.GetApartmentData(_doc, false);
+                _apartmentsData.Clear();
+                foreach (var kvp in newApartmentsData)
+                {
+                    _apartmentsData[kvp.Key] = kvp.Value;
+                }
+                if (errors.Any())
+                {
+                    MessageBox.Show(string.Join("\n", errors));
+                }
+
+                _apartmentUpdater.UpdateApartmentLayout(_doc, _apartmentsData);
+                MessageBox.Show("Чертежный вид успешно обновлён!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при обновлении чертежного вида: {ex.Message}");
             }
         }
     }

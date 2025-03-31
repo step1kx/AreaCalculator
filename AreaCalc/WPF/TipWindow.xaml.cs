@@ -69,7 +69,7 @@ namespace AreaCalc
             // Добавляем все найденные типы и названия в ListBox
             foreach (var roomType in roomTypes)
             {
-                ApartmentInfoListBox.Items.Add($"Тип помещения: {roomType.TypeId} Название: {roomType.RoomName} Значение КГ.Жилые ко");
+                ApartmentInfoListBox.Items.Add($"Тип помещения: {roomType.TypeId}. Название: {roomType.RoomName} ");
             }
         }
 
