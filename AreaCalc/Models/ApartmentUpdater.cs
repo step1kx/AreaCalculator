@@ -20,6 +20,7 @@ namespace AreaCalc.Models
         private const double Spacing = 5;
 
         private const string DRAFTING_NAME = "Квартирография - Схема расположения квартир";
+        private const string FAMILY_NAME = "Квартирография - СРК - Ячейка";
 
         public ApartmentUpdater(IDraftingServices draftingService)
         {
@@ -49,22 +50,30 @@ namespace AreaCalc.Models
                 }
 
                 IEnumerable<FamilyInstance> instances = new FilteredElementCollector(doc, draftingView.Id)
-                    .OfCategory(BuiltInCategory.OST_GenericModel)
-                    .OfClass(typeof(FamilyInstance))
-                    .ToElements()
-                    .Cast<FamilyInstance>()
-                    .Where(i => i.Symbol.FamilyName == "Квартирография - СРК - Ячейка");
+                     .OfClass(typeof(FamilyInstance))
+                     .ToElements()
+                     .Cast<FamilyInstance>()
+                     .Where(i => i.Symbol.FamilyName.Equals(FAMILY_NAME, StringComparison.OrdinalIgnoreCase));
+
+                // MessageBox.Show($"Найдено экземпляров 'Квартирография - СРК - Ячейка': {instances.Count()}"); отладка
 
                 if (!instances.Any())
                 {
-                    MessageBox.Show("В чертежном виде не найдено экземпляров семейства 'Квартирография - СРК - Ячейка'.");
-                    FamilySymbol familySymbol = _draftingService.FindFamilySymbol(doc, "Квартирография - СРК - Ячейка");
-                    if (familySymbol != null && !familySymbol.IsActive)
+                    System.Diagnostics.Debug.WriteLine("Проверка имён семейств:");
+                    foreach (var instance in new FilteredElementCollector(doc, draftingView.Id)
+                        .OfClass(typeof(FamilyInstance))
+                        .ToElements()
+                        .Cast<FamilyInstance>())
                     {
-                        familySymbol.Activate();
-                        doc.Regenerate();
+                        MessageBox.Show($"Семейство: {instance.Symbol.FamilyName}");
                     }
+                    throw new Exception("В чертежном виде не найдено экземпляров семейства 'Квартирография - СРК - Ячейка'.");
                 }
+
+                var instanceMap = instances.ToDictionary(
+                    i => i.LookupParameter("КГ.СРК.Номер квартиры")?.AsString() ?? "",
+                    i => i,
+                    StringComparer.OrdinalIgnoreCase);
 
                 var sortedApartments = apartmentsData
                     .OrderBy(kvp => int.Parse(kvp.Key))

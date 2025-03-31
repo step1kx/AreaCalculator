@@ -255,14 +255,14 @@
                         </StackPanel>
                     </TabItem.Header>
                     <TabItem.Content>
-                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="550">
-                            <TextBlock Text="Создание чертежа со схематичным расположением марок" HorizontalAlignment="Center" Margin="0,0,0,10"/>
-                            <StackPanel Orientation="Horizontal" Width="225">
-                                <Button x:Name="roomsSchemaInBuilding" Content="Создать" 
-                                    Width="100" Height="40" 
+                        <StackPanel  HorizontalAlignment="Center" Width="550" Height="130">
+                            <TextBlock Text="Создание чертежного вида со схематичным расположением марок" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                            <StackPanel Orientation="Horizontal" Width="323">
+                                <Button x:Name="roomsSchemaInBuilding" Content="Создать вид" 
+                                    Width="150" Height="40" 
                                     Click="CreateLayoutButton_Click"/>
-                                <Button x:Name="updateRoomsSchema" Content="Обновить"
-                                    Width="100" Height="40"
+                                <Button x:Name="updateRoomsSchema" Content="Обновить вид"
+                                    Width="150" Height="40"
                                     Click="UpdateLayoutButton_Click"
                                        />
                             </StackPanel>

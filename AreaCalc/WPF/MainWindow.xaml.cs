@@ -250,20 +250,18 @@ namespace AreaCalc
 
             try
             {
-                if (!_apartmentsData.Any())
+                if (selectedApartmentRadioButton.IsChecked == true || allApartmentsOnViewRadioButton.IsChecked == true)
                 {
-                    MessageBox.Show("Данные о квартирах отсутствуют. Пожалуйста, выберите режим и загрузите данные.");
-                    return;
-                }
-
-                if(selectedApartmentRadioButton.IsChecked == true)
-                {
-                    MessageBox.Show("Выбрать можно только из:" +
-                        "\n- Квартиры на виде" +
+                    MessageBox.Show("Выбрать можно только: " +
                         "\n- Квартиры на объекте");
                     return;
                 }
 
+                if (!_apartmentsData.Any())
+                {
+                    MessageBox.Show("Данные о квартирах отсутствуют. Пожалуйста, выберите режим расчета (выбор представлен выше).");
+                    return;
+                }
                 _apartmentLayout.CreateApartmentLayout(_doc, _apartmentsData);
                 MessageBox.Show("Чертежный вид с квартирографией успешно создан!" 
                                 + $"\nКвартир обработано: {_apartmentsData.Count}", "Успешное создание чертежного вида");
@@ -278,13 +276,19 @@ namespace AreaCalc
         {
             try
             {
-                if (!_apartmentsData.Any())
+                if (selectedApartmentRadioButton.IsChecked == true || allApartmentsOnViewRadioButton.IsChecked == true)
                 {
-                    MessageBox.Show("Данные о квартирах отсутствуют. Пожалуйста, выберите режим и загрузите данные.");
+                    MessageBox.Show("Выбрать можно только: " +
+                        "\n- Квартиры на объекте");
                     return;
                 }
 
-                // Обновляем данные о квартирах (например, можно перезагрузить их)
+                if (!_apartmentsData.Any())
+                {
+                    MessageBox.Show("Данные о квартирах отсутствуют. Пожалуйста, выберите режим расчета (выбор представлен выше).");
+                    return;
+                }
+
                 var (newApartmentsData, errors) = _dataProvider.GetApartmentData(_doc, false);
                 _apartmentsData.Clear();
                 foreach (var kvp in newApartmentsData)
