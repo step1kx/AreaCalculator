@@ -268,7 +268,7 @@ namespace AreaCalc
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при создании чертежного вида (имя должно быть уникальным): {ex.Message}");
+                MessageBox.Show($"{ex.Message}" + "\nЧертеж уже существует!");
             }
         }
 

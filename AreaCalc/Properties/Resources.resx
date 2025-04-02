@@ -130,8 +130,7 @@
   <data name="UsualFormula" xml:space="preserve">
     <value>Пример: Тип11*0.85 + Тип2</value>
   </data>
-  <data name="Квартирография - СРК - Ячейка" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\Квартирография - СРК - Ячейка.rfa;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
-    <comment>Если в проекте Revit не будет этого семейства, то программа сама его скачает и добавит в проект</comment>
+  <data name="ApartmentLayoutFamily" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Квартирография - СРК - Ячейка.rfa;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
 </root>

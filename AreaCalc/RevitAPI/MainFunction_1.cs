@@ -9,8 +9,8 @@
 
 
 [*] Developers:
-[*] Alexandr Savitski
 [*] Stepan Yuzefovich
+[*] Alexandr Savitski
               
 
  ===========================================================*/

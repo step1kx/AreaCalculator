@@ -61,6 +61,16 @@ namespace AreaCalc.Properties {
         }
         
         /// <summary>
+        ///   Поиск локализованного ресурса типа System.Byte[].
+        /// </summary>
+        public static byte[] ApartmentLayoutFamily {
+            get {
+                object obj = ResourceManager.GetObject("ApartmentLayoutFamily", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
         public static System.Drawing.Bitmap area {
@@ -94,15 +104,6 @@ namespace AreaCalc.Properties {
         public static string UsualFormula {
             get {
                 return ResourceManager.GetString("UsualFormula", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Ищет локализованную строку, похожую на ��ࡱ�&gt;������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������������ [остаток строки не уместился]&quot;;.
-        /// </summary>
-        public static string Квартирография___СРК___Ячейка {
-            get {
-                return ResourceManager.GetString("Квартирография - СРК - Ячейка", resourceCulture);
             }
         }
     }
