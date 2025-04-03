@@ -153,20 +153,38 @@ namespace AreaCalc
                 }
                 else if (allApartmentsOnViewRadioButton.IsChecked == true || allApartmentsOnObjectRadioButton.IsChecked == true)
                 {
-                    int processed = 0;
+                    var allErrors = new HashSet<string>(); 
+                    int processed = 0; 
+
                     foreach (var apartment in _apartmentsData)
                     {
                         double area = 0;
-                        ProcessApartment(apartment.Value, livingFormula, usualFormula, totalFormula, ref area);
-                        totalViewArea += area;
-                        processed++;
+                        try
+                        {
+                            ProcessApartment(apartment.Value, livingFormula, usualFormula, totalFormula, ref area);
+                            totalViewArea += area;
+                            processed++;
+                        }
+                        catch (Exception ex)
+                        {
+                            allErrors.Add($"{ex.Message}");
+                        }
                     }
-                    MessageBox.Show($"Расчет завершен. Обработано квартир: {processed}");
-                }
-                else
-                {
-                    MessageBox.Show("Нужен выбор режима расчета!");
-                    return;
+
+                    if (allErrors.Any())
+                    {
+                        string errorMessage = "Обнаружены следующие ошибки:\n" + string.Join("\n", allErrors);
+                        MessageBox.Show(errorMessage);
+                    }
+
+                    if (processed > 0) 
+                    {
+                        MessageBox.Show($"Расчет завершен. Обработано квартир: {processed}");
+                    }
+                    else
+                    {
+                        MessageBox.Show("Не удалось обработать ни одной квартиры.");
+                    }
                 }
 
                 tx.Commit();
@@ -190,7 +208,7 @@ namespace AreaCalc
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка в расчете: {ex.Message}");
+                throw new Exception($"Ошибка в расчете площадей: {ex.Message}");
             }
         }
 
