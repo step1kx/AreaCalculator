@@ -276,11 +276,11 @@ namespace AreaCalc
                     return;
                 }
 
-                //if (!_apartmentsData.Any())
-                //{
-                //    MessageBox.Show("Данные о квартирах отсутствуют. Пожалуйста, выберите режим расчета (выбор представлен выше).");
-                //    return;
-                //}
+                if (!_apartmentsData.Any())
+                {
+                    MessageBox.Show("Данные о квартирах отсутствуют. Пожалуйста, выберите режим расчета \'Все квартиры на объекте\'.");
+                    return;
+                }
                 _apartmentLayout.CreateApartmentLayout(_doc, _apartmentsData);
                 MessageBox.Show("Чертежный вид с квартирографией успешно создан!" 
                                 + $"\nКвартир обработано: {_apartmentsData.Count}", "Успешное создание чертежного вида");

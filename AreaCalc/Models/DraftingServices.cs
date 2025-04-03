@@ -35,6 +35,9 @@ namespace AreaCalc.Models
             }
 
             draftingView.Name = "Квартирография - Схема расположения квартир";
+
+            draftingView.Scale = 100;
+
             return draftingView;
         }
 
