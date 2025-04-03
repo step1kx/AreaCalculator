@@ -44,8 +44,9 @@ namespace AreaCalc
             _parameterUpdater = new ParameterUpdater();
             _settingsManager = new SettingsManager();
             _livingRoomManipulations = new LivingRoomManipulations(_doc, _apartmentsData, _dataProvider);
-            _apartmentLayout = new ApartmentLayout(new DraftingServices());
+            _apartmentLayout = new ApartmentLayout(new DraftingServices(), new FamilyLoader());
             _apartmentUpdater = new ApartmentUpdater(new DraftingServices());
+
 
             _settingsManager.LoadSettings(livingFormulaTextBox, usualFormulaTextBox, totalFormulaTextBox);
         }
@@ -257,11 +258,11 @@ namespace AreaCalc
                     return;
                 }
 
-                if (!_apartmentsData.Any())
-                {
-                    MessageBox.Show("Данные о квартирах отсутствуют. Пожалуйста, выберите режим расчета (выбор представлен выше).");
-                    return;
-                }
+                //if (!_apartmentsData.Any())
+                //{
+                //    MessageBox.Show("Данные о квартирах отсутствуют. Пожалуйста, выберите режим расчета (выбор представлен выше).");
+                //    return;
+                //}
                 _apartmentLayout.CreateApartmentLayout(_doc, _apartmentsData);
                 MessageBox.Show("Чертежный вид с квартирографией успешно создан!" 
                                 + $"\nКвартир обработано: {_apartmentsData.Count}", "Успешное создание чертежного вида");

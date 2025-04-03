@@ -13,42 +13,39 @@ namespace AreaCalc.Models
     public class ApartmentLayout : IApartmentLayout
     {
         private readonly IDraftingServices _draftingService;
+        private readonly IFamilyLoader _familyLoader;
 
-        private const string FamilyName = "Квартирография - СРК - Ячейка";
-        private const int MaxApartmentsPerRow = 5; // количество ячеек в ряду
-        private const double CellWidth = 3.0; // ширина ячейки
-        private const double CellHeight = 2.0; // высота ячейки
-        private const double Spacing = 5; // расстояние между ячейками
+        private const string FAMILY_NAME = "Квартирография - СРК - Ячейка";
+        private const int MAX_APARTMENTS_PER_ROW = 5; // количество ячеек в ряду
+        private const double CELL_WIDTH = 3.0; // ширина ячейки
+        private const double CELL_HEIGHT = 2.0; // высота ячейки
+        private const double SPACING = 5; // расстояние между ячейками
 
 
-        public ApartmentLayout(DraftingServices draftingServices)
+        public ApartmentLayout(DraftingServices draftingServices, FamilyLoader familyLoader)
         {
             _draftingService = draftingServices ?? throw new ArgumentNullException(nameof(draftingServices));
+            _familyLoader = familyLoader ?? throw new ArgumentNullException(nameof(familyLoader));  
         }
 
         
 
         public void CreateApartmentLayout(Document doc, Dictionary<string, List<Room>> apartmentsData)
         {
-            if (apartmentsData == null || !apartmentsData.Any())
-            {
-                throw new ArgumentException("Данные о квартирах отсутствуют.");
-            }
-
             using (Transaction tx = new Transaction(doc, "Создание чертежного вида квартирографии"))
             {
                 tx.Start();
 
                 ViewDrafting draftingView = _draftingService.CreateDraftingView(doc);
 
-                FamilySymbol familySymbol = _draftingService.FindFamilySymbol(doc, FamilyName);
+                FamilySymbol familySymbol = _draftingService.FindFamilySymbol(doc, FAMILY_NAME);
                 if (familySymbol == null)
                 {
-                    MessageBox.Show($"Семейство '{FamilyName}' не найдено в проекте. Пытаемся загрузить из ресурсов...");
-                    familySymbol = LoadFamilyFromResource(doc);
+                    MessageBox.Show($"Семейство '{FAMILY_NAME}' не найдено в проекте. Пытаемся загрузить из ресурсов...");
+                    familySymbol = _familyLoader.LoadFamilyFromResource(doc);
                     if (familySymbol == null)
                     {
-                        throw new Exception($"Не удалось загрузить семейство '{FamilyName}' из ресурсов.");
+                        throw new Exception($"Не удалось загрузить семейство '{FAMILY_NAME}' из ресурсов.");
                     }
                 }
 
@@ -66,64 +63,6 @@ namespace AreaCalc.Models
             }
         }
 
-        private FamilySymbol LoadFamilyFromResource(Document doc)
-        {
-            try
-            {
-                var assembly = Assembly.GetExecutingAssembly();
-                using (Stream familyStream = assembly.GetManifestResourceStream("AreaCalc.Resources.Квартирография - СРК - Ячейка.rfa"))
-                {
-                    if (familyStream == null)
-                    {
-                        MessageBox.Show("Файл семейства не найден в ресурсах.");
-                        return null;
-                    }
-
-                    string tempFilePath = Path.Combine(Path.GetTempPath(), "Квартирография - СРК - Ячейка.rfa");
-                    using (FileStream fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write))
-                    {
-                        familyStream.CopyTo(fileStream);
-                    }
-
-                    if (doc.LoadFamily(tempFilePath, out Family loadedFamily))
-                    {
-                        MessageBox.Show($"Семейство успешно загружено из {tempFilePath}");
-
-                        FamilySymbol familySymbol = new FilteredElementCollector(doc)
-                            .OfClass(typeof(FamilySymbol))
-                            .Cast<FamilySymbol>()
-                            .FirstOrDefault(fs => fs.FamilyName == FamilyName);
-
-                        if (familySymbol == null)
-                        {
-                            MessageBox.Show($"Символ семейства '{FamilyName}' не найден после загрузки.");
-                        }
-                        else
-                        {
-                            File.Delete(tempFilePath);
-                            return familySymbol;
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show($"Не удалось загрузить семейство из {tempFilePath}");
-                    }
-
-                    if (File.Exists(tempFilePath))
-                    {
-                        File.Delete(tempFilePath);
-                    }
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка при загрузке семейства: {ex.Message}");
-                return null;
-            }
-        }
-
-
 
         private List<FamilyInstance> PlaceFamilyInstances(Document doc, ViewDrafting draftingView, FamilySymbol familySymbol, Dictionary<string, List<Room>> apartmentsData)
         {
@@ -134,17 +73,17 @@ namespace AreaCalc.Models
                 .ToList();
 
             int apartmentCount = sortedApartments.Count;
-            int columns = Math.Min(apartmentCount, MaxApartmentsPerRow);
-            int rows = (int)Math.Ceiling((double)apartmentCount / MaxApartmentsPerRow);
+            int columns = Math.Min(apartmentCount, MAX_APARTMENTS_PER_ROW);
+            int rows = (int)Math.Ceiling((double)apartmentCount / MAX_APARTMENTS_PER_ROW);
 
             int index = 0;
             foreach (var apartment in sortedApartments)
             {
-                int row = index / MaxApartmentsPerRow;
-                int col = index % MaxApartmentsPerRow;
+                int row = index / MAX_APARTMENTS_PER_ROW;
+                int col = index % MAX_APARTMENTS_PER_ROW;
 
-                double x = col * (CellWidth + Spacing);
-                double y = row * (CellHeight + Spacing);
+                double x = col * (CELL_WIDTH + SPACING);
+                double y = row * (CELL_HEIGHT + SPACING);
                 XYZ location = new XYZ(x, y, 0);
 
                 FamilyInstance instance = _draftingService.PlaceFamilyInstance(doc, draftingView, familySymbol, location);
