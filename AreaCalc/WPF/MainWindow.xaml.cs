@@ -49,6 +49,7 @@ namespace AreaCalc
 
 
             _settingsManager.LoadSettings(livingFormulaTextBox, usualFormulaTextBox, totalFormulaTextBox);
+            
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -186,6 +187,11 @@ namespace AreaCalc
                         MessageBox.Show("Не удалось обработать ни одной квартиры.");
                     }
                 }
+                else
+                {
+                    MessageBox.Show("Вы не выбрали режим для работы (режимы представлены выше)");
+                    return;
+                }
 
                 tx.Commit();
             }
@@ -260,7 +266,8 @@ namespace AreaCalc
             }
             else
             {
-                MessageBox.Show("Нужен выбор режима расчета!");
+                MessageBox.Show("Вы не выбрали режим для работы (режимы представлены выше)");
+                return; 
             }
         }
 
@@ -278,7 +285,7 @@ namespace AreaCalc
 
                 if (!_apartmentsData.Any())
                 {
-                    MessageBox.Show("Данные о квартирах отсутствуют. Пожалуйста, выберите режим расчета \'Все квартиры на объекте\'.");
+                    MessageBox.Show("Чертежный вид не может быть создан.\nПожалуйста, выберите режим расчета \'Все квартиры на объекте\'.");
                     return;
                 }
                 _apartmentLayout.CreateApartmentLayout(_doc, _apartmentsData);
@@ -287,7 +294,8 @@ namespace AreaCalc
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{ex.Message}" + "\nЧертеж уже существует!");
+                MessageBox.Show($"{ex.Message}" +
+                "\nЧертеж уже существует!");
             }
         }
 
@@ -304,7 +312,7 @@ namespace AreaCalc
 
                 if (!_apartmentsData.Any())
                 {
-                    MessageBox.Show("Данные о квартирах отсутствуют. Пожалуйста, выберите режим расчета (выбор представлен выше).");
+                    MessageBox.Show("Чертежный вид не может быть обновлен.\nПожалуйста, выберите режим расчета 'Все квартиры на объекте'.");
                     return;
                 }
 
