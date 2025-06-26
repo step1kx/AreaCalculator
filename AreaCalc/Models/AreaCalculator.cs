@@ -44,7 +44,7 @@ namespace AreaCalc.Models
                     int? type = r.LookupParameter("КГ.Тип помещения")?.AsInteger() ?? 0;
                     return "Тип" + type;
                 })
-                .ToDictionary(g => g.Key, g => Math.Round(g.Sum(r => r.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble()), 3));
+                .ToDictionary(g => g.Key, g => Math.Round(g.Sum(r => r.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble()), 2));
         }
 
         public (double livingArea, double usualArea, double totalArea) CalculateAreas(List<Room> rooms, string livingFormula, string usualFormula, string totalFormula)
@@ -63,7 +63,7 @@ namespace AreaCalc.Models
 
             if (!string.IsNullOrEmpty(totalFormula))
                 totalArea = CalculateFormula(totalFormula, roomAreas);
-
+            
             return (livingArea, usualArea, totalArea);
         }
     }
