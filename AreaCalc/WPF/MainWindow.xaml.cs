@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Grid = System.Windows.Controls.Grid;
 using AreaCalc.Interfaces;
 using AreaCalc.Models;
+using Autodesk.Revit.UI;
 
 namespace AreaCalc
 {
@@ -201,21 +202,78 @@ namespace AreaCalc
         {
             try
             {
+                foreach (var room in rooms)
+                {
+                    var areaParam = room.get_Parameter(BuiltInParameter.ROOM_AREA);
+                    if (areaParam == null)
+                        throw new Exception("У помещения отсутствует встроенный параметр ROOM_AREA.");
+
+                    double areaMeters = areaParam.AsDouble() * 0.092903;
+                    double roundedArea = RoundToThreeAndThenTwo(areaMeters);
+
+                    if (!_parameterUpdater.HasParameter(room, "Скрипт.Площадь помещения"))
+                        throw new Exception("У помещения отсутствует параметр 'Скрипт.Площадь помещения'.");
+
+                    _parameterUpdater.UpdateRoomParameter(room, "Скрипт.Площадь помещения", roundedArea);
+                }
+
                 var (livingArea, usualArea, calculatedTotalArea) = _areaCalculator.CalculateAreas(rooms, livingFormula, usualFormula, totalFormula);
 
                 foreach (var room in rooms)
                 {
-                    _parameterUpdater.UpdateRoomParameter(room, "КГ.S.Ж", livingArea);
-                    _parameterUpdater.UpdateRoomParameter(room, "КГ.S.ЖП.Площадь квартиры", usualArea);
-                    _parameterUpdater.UpdateRoomParameter(room, "КГ.S.ЖПЛк.Общая площадь", calculatedTotalArea);
+                            // Проверка технических параметров
+                     string[] techParams = {
+                    "Скрипт.Жилая площадь",
+                    "Скрипт.Площадь квартиры",
+                    "Скрипт.Общая площадь"
+                };
+
+                    foreach (var param in techParams)
+                    {
+                        if (!_parameterUpdater.HasParameter(room, param))
+                            throw new Exception($"У помещения отсутствует параметр '{param}'.");
+                    }
+
+                    _parameterUpdater.UpdateRoomParameter(room, "Скрипт.Жилая площадь", RoundToThreeAndThenTwo(livingArea));
+                    _parameterUpdater.UpdateRoomParameter(room, "Скрипт.Площадь квартиры", RoundToThreeAndThenTwo(usualArea));
+                    _parameterUpdater.UpdateRoomParameter(room, "Скрипт.Общая площадь", RoundToThreeAndThenTwo(calculatedTotalArea));
+
+                    double livingRaw = _parameterUpdater.GetRoomParameterValueRaw(room, "Скрипт.Жилая площадь");
+                    double usualRaw = _parameterUpdater.GetRoomParameterValueRaw(room, "Скрипт.Площадь квартиры");
+                    double totalRaw = _parameterUpdater.GetRoomParameterValueRaw(room, "Скрипт.Общая площадь");
+
+                            // Проверка КГ-параметров
+                    string[] kgParams = {
+                    "КГ.S.Ж",
+                    "КГ.S.ЖП.Площадь квартиры",
+                    "КГ.S.ЖПЛк.Общая площадь"
+                };
+
+                    foreach (var param in kgParams)
+                    {
+                        if (!_parameterUpdater.HasParameter(room, param))
+                            throw new Exception($"У помещения отсутствует параметр '{param}'.");
+                    }
+
+                    _parameterUpdater.UpdateRoomParameter(room, "КГ.S.Ж", livingRaw * 10.7639);
+                    _parameterUpdater.UpdateRoomParameter(room, "КГ.S.ЖП.Площадь квартиры", usualRaw * 10.7639);
+                    _parameterUpdater.UpdateRoomParameter(room, "КГ.S.ЖПЛк.Общая площадь", totalRaw * 10.7639);
                 }
 
                 totalArea = calculatedTotalArea;
             }
             catch (Exception ex)
             {
-                throw new Exception($"Ошибка в расчете площадей: {ex.Message}");
+                TaskDialog.Show("Ошибка", $"Ошибка в расчете площадей:\n{ex.Message}");
+                throw; // если хочешь, можно убрать повторный throw
             }
+        }
+
+
+        private double RoundToThreeAndThenTwo(double value)
+        {
+            double roundedToThree = Math.Round(value, 2);
+            return roundedToThree;
         }
 
         private void MovingWin(object sender, EventArgs e)

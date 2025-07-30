@@ -8,11 +8,20 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace AreaCalc.Models
 {
     public class AreaCalculator : IAreaCalculator
     {
+
+        private double RoundToThreeAndThenTwo(double value)
+        {
+            double roundedToThree = Math.Round(value, 2);
+            return roundedToThree;
+        }
+
         public double CalculateFormula(string formula, Dictionary<string, double> roomAreas)
         {
             
@@ -33,23 +42,29 @@ namespace AreaCalc.Models
 
             DataTable table = new DataTable();
             var result = table.Compute(processedFormula, null);
-            return Convert.ToDouble(result);
+            double resultValue = Convert.ToDouble(result);
+            return RoundToThreeAndThenTwo(resultValue);
         }
-
         public Dictionary<string, double> CalculateRoomAreas(List<Room> rooms)
         {
             return rooms
-                .GroupBy(r =>
-                {
-                    int? type = r.LookupParameter("КГ.Тип помещения")?.AsInteger() ?? 0;
-                    return "Тип" + type;
-                })
-                .ToDictionary(g => g.Key, g => Math.Round(g.Sum(r => r.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble()), 2));
+                .GroupBy(r => "Тип" + (r.LookupParameter("КГ.Тип помещения")?.AsInteger() ?? 0))
+                .ToDictionary(
+                    g => g.Key,
+                    g => RoundToThreeAndThenTwo(
+                        g.Sum(room =>
+                        {
+                            var param = room.LookupParameter("Скрипт.Площадь помещения");
+                            return param != null && param.HasValue ? param.AsDouble() : 0;
+                        })
+                    )
+                );
         }
+
 
         public (double livingArea, double usualArea, double totalArea) CalculateAreas(List<Room> rooms, string livingFormula, string usualFormula, string totalFormula)
         {
-            
+
             double livingArea = 0;
             double usualArea = 0;
             double totalArea = 0;
@@ -58,12 +73,16 @@ namespace AreaCalc.Models
             if (!string.IsNullOrEmpty(livingFormula))
                 livingArea = CalculateFormula(livingFormula, roomAreas);
 
+
             if (!string.IsNullOrEmpty(usualFormula))
                 usualArea = CalculateFormula(usualFormula, roomAreas);
 
+
             if (!string.IsNullOrEmpty(totalFormula))
+            {
                 totalArea = CalculateFormula(totalFormula, roomAreas);
-            
+            }
+
             return (livingArea, usualArea, totalArea);
         }
     }
